@@ -1,6 +1,6 @@
-import { CacheType, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { CacheType, ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from "discord.js";
 
 export default interface Command {
-    getData: () => SlashCommandBuilder
+    getData: () => SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder
     execute: (interaction: ChatInputCommandInteraction<CacheType>) => Promise<void>;
 }

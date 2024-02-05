@@ -1,6 +1,7 @@
 import * as dotenv from "dotenv";
 import { Client, IntentsBitField, Events } from "discord.js";
 import CommandsHandler from "./handlers/CommandsHandler.js";
+import GroupMeController from "./handlers/GroupMeController.js";
 
 class Init {
 	private client = new Client({
@@ -11,12 +12,14 @@ class Init {
 			IntentsBitField.Flags.MessageContent
 		]
 	});
-	private commandsHandler = new CommandsHandler();
+
+	private groupMeController = new GroupMeController();
+	private commandsHandler = new CommandsHandler(this.groupMeController);
 
 	main() {
 		dotenv.config();
 		this.client.login(process.env.DISCORD_TOKEN);
-
+		this.groupMeController.setToken(process.env.GROUPME_TOKEN);
 
 		this.client.once(Events.ClientReady, () => {
 			console.log("[INFO] DiscordMe Starting");
@@ -27,6 +30,7 @@ class Init {
 			this.handleMenuInteractions();
 			console.log("[INFO] DiscordMe Online")
 		});
+
 	}
 
 	private handleCommands() {

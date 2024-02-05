@@ -1,7 +1,14 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import Command from "./Command.js";
+import GroupMeController from "../handlers/GroupMeController.js";
 
 export default class GM implements Command {
+    private gmController:GroupMeController;
+
+    constructor(controller:GroupMeController) {
+        this.gmController = controller;
+    }
+
     private data = new SlashCommandBuilder()
         .setName("gm")
         .setDescription("GroupMe Bot controller")
@@ -30,7 +37,26 @@ export default class GM implements Command {
         }
     }
 
-    private config(interaction:ChatInputCommandInteraction) {
-        const channel = interaction.options.getString("channel", true);
+    private async config(interaction:ChatInputCommandInteraction) {
+        const channelName = interaction.options.getString("channel", true);
+        const response = await this.gmController.getChannelByName(channelName);
+
+        if(response.length === 0) {
+            return interaction.reply({
+                content:`No channel found by the name ${channelName}`,
+                ephemeral:true
+            })
+        }
+        else if(response.length > 1) {
+            return interaction.reply({
+                content:"Multiple channels were found. Please select one.",
+                ephemeral:true
+            })
+        }
+
+        interaction.reply({
+            content:`Configured to channel ${channelName}`,
+            ephemeral:true
+        })
     }
 }

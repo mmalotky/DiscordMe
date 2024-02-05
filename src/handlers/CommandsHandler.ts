@@ -2,16 +2,17 @@ import dotenv from "dotenv";
 import { REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes} from "discord.js";
 import Command from "../commands/Command.js";
 import GM from "../commands/GM.js";
+import GroupMeController from "./GroupMeController.js";
 
 export default class CommandsHandler {
     private commands:Command[] = [];
     private commandsJSON:RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
     private rest = new REST({version:'10'});
 
-    constructor() {
+    constructor(gmController:GroupMeController) {
         dotenv.config();
 
-        const gm = new GM();
+        const gm = new GM(gmController);
         this.commands.push(gm);
         this.commandsJSON.push(gm.getData().toJSON());
 

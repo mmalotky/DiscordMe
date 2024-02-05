@@ -8,6 +8,11 @@ export default class GM implements Command {
         .addSubcommand(sub => {
             return sub.setName("config")
                 .setDescription("Configure a discord text channel")
+                .addStringOption(option => {
+                    return option.setName("channel")
+                        .setRequired(true)
+                        .setDescription("Name of GroupMe Channel")
+                })
         });
 
     getData() { return this.data; }
@@ -15,7 +20,7 @@ export default class GM implements Command {
     async execute(interaction:ChatInputCommandInteraction) {
         const subcommand = interaction.options.getSubcommand();
         if( subcommand === "config") {
-
+            this.config(interaction);
         }
         else {
             interaction.reply({
@@ -23,5 +28,9 @@ export default class GM implements Command {
                 ephemeral: true
             });
         }
+    }
+
+    private config(interaction:ChatInputCommandInteraction) {
+        const channel = interaction.options.getString("channel", true);
     }
 }

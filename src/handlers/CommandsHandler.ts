@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes} from "discord.js";
 import Command from "../commands/Command.js";
+import GM from "../commands/GM.js";
 
 export default class CommandsHandler {
     private commands:Command[] = [];
@@ -9,8 +10,10 @@ export default class CommandsHandler {
 
     constructor() {
         dotenv.config();
-        
 
+        const gm = new GM();
+        this.commands.push(gm);
+        this.commandsJSON.push(gm.getData().toJSON());
 
         if(process.env.DISCORD_TOKEN) this.rest.setToken(process.env.DISCORD_TOKEN);
         else console.log("[ERR]: No discord token found");

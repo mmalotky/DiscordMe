@@ -21,17 +21,40 @@ export default class GM implements Command {
                         .setRequired(true)
                         .setDescription("Name of GroupMe Channel")
                 })
+        })
+        .addSubcommand(sub => {
+            return sub.setName("setconfig")
+                .setDescription("Change configuration")
+                .addStringOption(option => {
+                    return option.setName("channel")
+                        .setRequired(true)
+                        .setDescription("Name of GroupMe Channel")
+                })
+        })
+        .addSubcommand(sub => {
+            return sub.setName("getconfig")
+                .setDescription("Get the current configuration");
         });
 
     getData() { return this.data; }
     
     async execute(interaction:ChatInputCommandInteraction) {
         const subcommand = interaction.options.getSubcommand();
-        if( subcommand === "config") {
-            this.config(interaction);
-        }
-        else {
-            interaction.reply({
+        switch(subcommand) {
+
+            case("config"): 
+                this.config(interaction);
+                break;
+
+            case("setconfig"): 
+                this.setConfig(interaction);
+                break;
+
+            case("getconfig"):
+                this.getConfig(interaction)
+                break;
+
+            default: interaction.reply({
                 content: `Subcommand "${subcommand}" not recognised.`,
                 ephemeral: true
             });
@@ -39,28 +62,80 @@ export default class GM implements Command {
     }
 
     private async config(interaction:ChatInputCommandInteraction) {
+        const channel = await this.getChannel(interaction);
+        if(!channel) return;
+
+        const sucess = await DataHandler.addConfig(interaction.channelId, channel);
+
+        if(sucess) {
+            interaction.reply({
+                content:`Configured to channel ${channel.getName()}`,
+                ephemeral:true
+            });
+        }
+        else {
+            interaction.reply({
+                content:"This Discord channel already has another GroupMe channel assigned",
+                ephemeral:true
+            })
+        }
+    }
+
+    private async setConfig(interaction:ChatInputCommandInteraction) {
+        const channel = await this.getChannel(interaction);
+        if(!channel) return;
+        const sucess = await DataHandler.setConfig(interaction.channelId, channel);
+
+        if(sucess) {
+            interaction.reply({
+                content:`Configured to channel ${channel.getName()}`,
+                ephemeral:true
+            });
+        }
+        else {
+            interaction.reply({
+                content:"No config found for this Discord Channel",
+                ephemeral:true
+            })
+        }
+    }
+
+    private async getConfig(interaction:ChatInputCommandInteraction) {
+        const channel = await DataHandler.getConfig(interaction.channelId);
+
+        if(channel) {
+            interaction.reply({
+                content:`Current configuration: \n${JSON.stringify(channel)}`,
+                ephemeral:true,
+            })
+        }
+        else {
+            interaction.reply({
+                content: "This channel is not yet configured.",
+                ephemeral:true
+            })
+        }
+    }
+
+    private async getChannel(interaction:ChatInputCommandInteraction) {
         const channelName = interaction.options.getString("channel", true);
         const response = await this.gmController.getChannelByName(channelName);
 
         if(response.length === 0) {
-            return interaction.reply({
+            interaction.reply({
                 content:`No channel found by the name ${channelName}`,
                 ephemeral:true
-            })
+            });
+            return false;
         }
         else if(response.length > 1) {
-            return interaction.reply({
+            interaction.reply({
                 content:"Multiple channels were found. Please select one.",
                 ephemeral:true
             })
+            return false;
         }
 
-        const channel = response[0];
-        DataHandler.addConfig(interaction.channelId, channel);
-
-        interaction.reply({
-            content:`Configured to channel ${channelName}`,
-            ephemeral:true
-        })
+        return response[0];
     }
 }

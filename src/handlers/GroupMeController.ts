@@ -1,5 +1,6 @@
 import { error } from "console";
 import GroupMeChannel from "../models/GroupMeChannel";
+import { ERR } from "../utility/LogMessage";
 
 export default class GroupMeController {
     private GROUPME_TOKEN:string;
@@ -8,7 +9,7 @@ export default class GroupMeController {
 
     public setToken(token?:string) {
         if(token) this.GROUPME_TOKEN = token;
-        else console.error("No GroupMe token defined.");
+        else ERR("No GroupMe token defined.");
     }
 
     public async getChannelByName(name:string) {
@@ -42,7 +43,7 @@ export default class GroupMeController {
             return channels;
         }
         catch(e) {
-            console.error(e);
+            ERR(e);
         }
     }
 }

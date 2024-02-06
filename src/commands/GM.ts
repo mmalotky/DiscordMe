@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import Command from "./Command.js";
 import GroupMeController from "../handlers/GroupMeController.js";
+import DataHandler from "../handlers/DataHandler.js";
 
 export default class GM implements Command {
     private gmController:GroupMeController;
@@ -53,6 +54,9 @@ export default class GM implements Command {
                 ephemeral:true
             })
         }
+
+        const channel = response[0];
+        DataHandler.addConfig(interaction.channelId, channel);
 
         interaction.reply({
             content:`Configured to channel ${channelName}`,

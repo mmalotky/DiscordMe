@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import { Client, IntentsBitField, Events } from "discord.js";
 import CommandsHandler from "./handlers/CommandsHandler.js";
 import GroupMeController from "./handlers/GroupMeController.js";
+import { ERR, INFO } from "./utility/LogMessage.js";
 
 class Init {
 	private client = new Client({
@@ -22,13 +23,13 @@ class Init {
 		this.groupMeController.setToken(process.env.GROUPME_TOKEN);
 
 		this.client.once(Events.ClientReady, () => {
-			console.log("[INFO] DiscordMe Starting");
+			INFO("DiscordMe Starting");
 			this.commandsHandler.register();
 			this.handleCommands();
 			this.handleModals();
 			this.handleButtons();
 			this.handleMenuInteractions();
-			console.log("[INFO] DiscordMe Online")
+			INFO("DiscordMe Online")
 		});
 
 	}
@@ -41,14 +42,14 @@ class Init {
 				.filter(c => c.getData().name === interaction.commandName)[0];
 		
 			if (!command) {
-				console.error(`[ERR] No command matching ${interaction.commandName} was found.`);
+				ERR(`No command matching ${interaction.commandName} was found.`);
 				return;
 			}
 		
 			try {
 				await command.execute(interaction);
 			} catch (error) {
-				console.error(error);
+				ERR(error);
 				if (interaction.replied || interaction.deferred) {
 					await interaction.followUp({ 
 						content: 'There was an error while executing this command!', 

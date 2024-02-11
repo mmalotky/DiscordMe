@@ -34,6 +34,10 @@ export default class GM implements Command {
         .addSubcommand(sub => {
             return sub.setName("getconfig")
                 .setDescription("Get the current configuration");
+        })
+        .addSubcommand(sub => {
+            return sub.setName("update")
+                .setDescription("Get messages since last update");
         });
 
     getData() { return this.data; }
@@ -51,7 +55,11 @@ export default class GM implements Command {
                 break;
 
             case("getconfig"):
-                this.getConfig(interaction)
+                this.getConfig(interaction);
+                break;
+
+            case("update"):
+                this.update(interaction);
                 break;
 
             default: interaction.reply({
@@ -59,6 +67,12 @@ export default class GM implements Command {
                 ephemeral: true
             });
         }
+    }
+    private async update(interaction: ChatInputCommandInteraction) {
+        const channel = await DataHandler.getConfig(interaction.channelId);
+        if(!channel) return;
+
+        this.gmController.getMessages(channel);
     }
 
     private async config(interaction:ChatInputCommandInteraction) {

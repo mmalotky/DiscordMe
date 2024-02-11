@@ -55,7 +55,8 @@ export default class DataHandler {
             const path = await this.checkConfig(discordID);
             if(!path) return;
             const data = await readFile(path, {encoding:"utf-8"});
-            const channel:GroupMeChannel = JSON.parse(data);
+            const json = JSON.parse(data);
+            const channel = new GroupMeChannel(json.id, json.name);
             return channel;
         }
         catch(err) {

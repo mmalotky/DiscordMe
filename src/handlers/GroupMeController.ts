@@ -1,6 +1,8 @@
 import { error } from "console";
 import GroupMeChannel from "../models/GroupMeChannel";
 import { ERR } from "../utility/LogMessage";
+import GroupMeMessage from "../models/GroupMeMessage";
+import { parceMessage } from "../utility/MessageParcer";
 
 export default class GroupMeController {
     private GROUPME_TOKEN:string;
@@ -44,6 +46,43 @@ export default class GroupMeController {
         }
         catch(e) {
             ERR(e);
+        }
+    }
+
+    public async getMessages(channel:GroupMeChannel) {
+        const messages:GroupMeMessage[] = [];
+        let messagePage:GroupMeMessage[] | void;
+        let lastID:string = `${channel.getLastMessageID()}`;
+        do {
+            messagePage = await this.getMessagesAfterID(channel.getID(), lastID);
+            if(messagePage == null) return messages;
+            messages.push(...messagePage);
+
+            if(messagePage.length > 0) lastID = messagePage[0].getID();
+        } while(messagePage.length > 0);
+
+        console.log(messages);
+        return messages;
+    }
+
+    private async getMessagesAfterID(channelID:string, lastID:string) {
+        try{
+            const url = `${this.GROUPME_URL}/groups/${channelID}/messages?token=${this.GROUPME_TOKEN}&after_id=${lastID}`;
+            const response = await fetch(url);
+            if(response.status !== 200) throw error(`Request failed with status ${response.status}`);
+
+            const json = await response.json();
+            const raw:any[] = json.response.messages;
+            const messages:GroupMeMessage[] = [];
+
+            for(const data of raw) {
+                const message = parceMessage(data);
+                messages.push(message);
+            }
+
+            return messages;
+        } catch(err) {
+            ERR(err);
         }
     }
 }

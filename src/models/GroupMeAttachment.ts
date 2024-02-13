@@ -10,7 +10,9 @@ export enum GroupMeAttachmentType {
     VIDEO = "video",
     FILE = "file",
     REPLY = "reply",
-    MENTIONS = "mentions"
+    MENTIONS = "mentions",
+    POLL = "poll",
+    EVENT = "event"
 }
 
 export class GroupMeImageAttachment implements GroupMeAttachment {
@@ -135,5 +137,31 @@ export class GroupMeReplyAttachment implements GroupMeAttachment {
 
     getReplyID() {
         return this.replyID;
+    }
+}
+
+export class GroupMePollAttachment implements GroupMeAttachment {
+    attachmentType: GroupMeAttachmentType = GroupMeAttachmentType.POLL;
+    private id:string;
+
+    constructor(id:string) {
+        this.id = id;
+    }
+
+    getID() {
+        return this.id;
+    }
+}
+
+export class GroupMeEventAttachment implements GroupMeAttachment {
+    attachmentType: GroupMeAttachmentType = GroupMeAttachmentType.EVENT;
+    private id:string;
+
+    constructor(id:string) {
+        this.id = id;
+    }
+
+    getID() {
+        return this.id;
     }
 }

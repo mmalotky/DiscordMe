@@ -72,7 +72,22 @@ export default class GM implements Command {
         const channel = await DataHandler.getConfig(interaction.channelId);
         if(!channel) return;
 
-        this.gmController.getMessages(channel);
+        const messages = await this.gmController.getMessages(channel);
+        //TODO:Send messages
+
+        if(messages.length === 0) {
+            interaction.reply({
+                content:"No new messages",
+                ephemeral:true
+            })
+        }
+        else {
+            interaction.reply({
+                content:"Success",
+                ephemeral:true
+            })
+            interaction.deleteReply();
+        }
     }
 
     private async config(interaction:ChatInputCommandInteraction) {

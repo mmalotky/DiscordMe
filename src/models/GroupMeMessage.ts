@@ -8,6 +8,7 @@ export default class GroupMeMessage {
     private createdOn: Date;
     private text: string;
     private attachments:GroupMeAttachment[];
+    private isSystem:boolean;
 
     constructor(
         id:string, 
@@ -15,7 +16,8 @@ export default class GroupMeMessage {
         groupId:string, 
         createdOn:Date, 
         text:string,
-        attachments:GroupMeAttachment[]
+        attachments:GroupMeAttachment[],
+        isSystem:boolean
     ) {
         this.id = id;
         this.member = member;
@@ -23,6 +25,7 @@ export default class GroupMeMessage {
         this.createdOn = createdOn;
         this.text = text;
         this.attachments = attachments;
+        this.isSystem = isSystem;
     }
 
     getID() {
@@ -47,5 +50,9 @@ export default class GroupMeMessage {
 
     getAttachments() {
         return this.attachments;
+    }
+
+    getIsSystem() {
+        return this.isSystem;
     }
 }

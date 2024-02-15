@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import Command from "./Command.js";
 import GroupMeController from "../handlers/GroupMeController.js";
 import DataHandler from "../handlers/DataHandler.js";
+import { parceDiscordMessage } from "../utility/MessageParcer.js";
 
 export default class GM implements Command {
     private gmController:GroupMeController;
@@ -73,7 +74,13 @@ export default class GM implements Command {
         if(!channel) return;
 
         const messages = await this.gmController.getMessages(channel);
-        //TODO:Send messages
+        for(const message of messages) {
+            const payload = parceDiscordMessage(message);
+            interaction.channel?.send(payload);
+
+            channel.setLastMessageID(message.getID());
+            DataHandler.setConfig(interaction.channelId, channel);
+        }
 
         if(messages.length === 0) {
             interaction.reply({

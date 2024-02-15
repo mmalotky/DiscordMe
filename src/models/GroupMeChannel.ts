@@ -1,7 +1,7 @@
 export default class GroupMeChannel {
     private id:string;
     private name:string;
-    private lastMessageID:number = 0;
+    private lastMessageID:string = "0";
 
     constructor(id:string, name:string) {
         this.id = id;
@@ -20,7 +20,7 @@ export default class GroupMeChannel {
         return this.lastMessageID;
     }
 
-    setLastMessageID(value:number) {
+    setLastMessageID(value:string) {
         this.lastMessageID = value;
     }
 }

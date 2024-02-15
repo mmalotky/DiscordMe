@@ -1,167 +1,78 @@
-export interface GroupMeAttachment {
-    attachmentType: GroupMeAttachmentType;
+export class GroupMeAttachment {
+    content:string;
+    list:string[];
+    map:number[][];
 }
 
-export enum GroupMeAttachmentType {
-    IMAGE = "image",
-    EMOJI = "emoji",
-    LOCATION = "location",
-    SPLIT = "split",
-    VIDEO = "video",
-    FILE = "file",
-    REPLY = "reply",
-    MENTIONS = "mentions",
-    POLL = "poll",
-    EVENT = "event"
-}
-
-export class GroupMeImageAttachment implements GroupMeAttachment {
-    attachmentType:GroupMeAttachmentType = GroupMeAttachmentType.IMAGE;
-    private url:string;
-
+export class GroupMeImageAttachment extends GroupMeAttachment {
     constructor(url:string) {
-        this.url = url;
-    }
-
-    getURL() {
-        return this.url;
+        super();
+        this.content = url;
     }
 }
 
-export class GroupMeVideoAttachment implements GroupMeAttachment {
-    attachmentType:GroupMeAttachmentType = GroupMeAttachmentType.VIDEO;
-    private url:string;
-
+export class GroupMeVideoAttachment extends GroupMeAttachment {
     constructor(url:string) {
-        this.url = url;
-    }
-
-    getURL() {
-        return this.url;
+        super();
+        this.content = url;
     }
 }
 
-export class GroupMeFileAttachment implements GroupMeAttachment {
-    attachmentType:GroupMeAttachmentType = GroupMeAttachmentType.FILE;
-    private url:string;
-
+export class GroupMeFileAttachment extends GroupMeAttachment {
     constructor(url:string) {
-        this.url = url;
-    }
-
-    getURL() {
-        return this.url;
+        super();
+        this.content = url;
     }
 }
 
-export class GroupMeLocationAttachment implements GroupMeAttachment {
-    attachmentType:GroupMeAttachmentType = GroupMeAttachmentType.LOCATION;
-    private name:string;
-    private lat:string;
-    private lng:string;
-
+export class GroupMeLocationAttachment extends GroupMeAttachment {
     constructor(name:string, lat:string, lng:string) {
-        this.name = name;
-        this.lat = lat;
-        this.lng = lng;
-    }
-
-    getName() {
-        return this.name;
-    }
-
-    getCoords() {
-        return [this.lat, this.lng];
+        super();
+        this.content = name;
+        this.list = [lat, lng];
     }
 }
 
-export class GroupMeEmojiAttachment implements GroupMeAttachment {
-    attachmentType: GroupMeAttachmentType = GroupMeAttachmentType.EMOJI;
-    private placeholder: string;
-    private charmap: number[][];
-    
+export class GroupMeEmojiAttachment extends GroupMeAttachment {    
     constructor(placeholder:string, charmap:number[][]) {
-        this.placeholder = placeholder;
-        this.charmap = charmap;
-    }
-
-    getPlaceholder() {
-        return this.placeholder;
-    }
-
-    getCharmap() {
-        return this.charmap;
+        super()
+        this.content = placeholder;
+        this.map = charmap;
     }
 }
 
-export class GroupMeSplitAttachment implements GroupMeAttachment {
-    attachmentType: GroupMeAttachmentType = GroupMeAttachmentType.SPLIT;
-    private token : string;
-
+export class GroupMeSplitAttachment extends GroupMeAttachment {
     constructor(token: string) {
-        this.token = token;
-    }
-
-    getToken() {
-        return this.token;
-    }
+        super();
+        this.content = token;
+}
 }
 
-export class GroupMeMentionsAttachment implements GroupMeAttachment {
-    attachmentType:GroupMeAttachmentType = GroupMeAttachmentType.MENTIONS;
-    private userIDs:string[];
-    private loci: number[][];
-
+export class GroupMeMentionsAttachment extends GroupMeAttachment {
     constructor(userIDs:string[], loci:number[][]) {
-        this.userIDs = userIDs;
-        this.loci = loci;
-
-    }
-
-    getUserIDs() {
-        return this.userIDs;
-    }
-
-    getLoci() {
-        return this.loci;
+        super();
+        this.list = userIDs;
+        this.map = loci;
     }
 }
 
-export class GroupMeReplyAttachment implements GroupMeAttachment {
-    attachmentType:GroupMeAttachmentType = GroupMeAttachmentType.REPLY;
-    private replyID:string;
-
+export class GroupMeReplyAttachment extends GroupMeAttachment {
     constructor(replyID:string) {
-        this.replyID = replyID;
-    }
-
-    getReplyID() {
-        return this.replyID;
+        super()
+        this.content = replyID;
     }
 }
 
-export class GroupMePollAttachment implements GroupMeAttachment {
-    attachmentType: GroupMeAttachmentType = GroupMeAttachmentType.POLL;
-    private id:string;
-
+export class GroupMePollAttachment extends GroupMeAttachment {
     constructor(id:string) {
-        this.id = id;
-    }
-
-    getID() {
-        return this.id;
+        super()
+        this.content = id;
     }
 }
 
-export class GroupMeEventAttachment implements GroupMeAttachment {
-    attachmentType: GroupMeAttachmentType = GroupMeAttachmentType.EVENT;
-    private id:string;
-
+export class GroupMeEventAttachment extends GroupMeAttachment {
     constructor(id:string) {
-        this.id = id;
-    }
-
-    getID() {
-        return this.id;
+        super();
+        this.content = id;
     }
 }

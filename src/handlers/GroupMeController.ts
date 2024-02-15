@@ -2,7 +2,7 @@ import { error } from "console";
 import GroupMeChannel from "../models/GroupMeChannel";
 import { ERR } from "../utility/LogMessage";
 import GroupMeMessage from "../models/GroupMeMessage";
-import { parceMessage } from "../utility/MessageParcer";
+import { parceGroupMeMessage } from "../utility/MessageParcer";
 
 export default class GroupMeController {
     private GROUPME_TOKEN:string;
@@ -53,15 +53,17 @@ export default class GroupMeController {
         const messages:GroupMeMessage[] = [];
         let messagePage:GroupMeMessage[] | void;
         let lastID:string = `${channel.getLastMessageID()}`;
+        
         do {
             messagePage = await this.getMessagesAfterID(channel.getID(), lastID);
             if(messagePage == null) return messages;
             messages.push(...messagePage);
 
-            if(messagePage.length > 0) lastID = messagePage[0].getID();
+            if(messagePage.length > 0) {
+                lastID = messagePage[messagePage.length - 1].getID();
+            }
         } while(messagePage.length > 0);
 
-        console.log(messages);
         return messages;
     }
 
@@ -76,7 +78,7 @@ export default class GroupMeController {
             const messages:GroupMeMessage[] = [];
 
             for(const data of raw) {
-                const message = parceMessage(data);
+                const message = parceGroupMeMessage(data);
                 messages.push(message);
             }
 

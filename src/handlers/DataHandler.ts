@@ -27,13 +27,9 @@ export default class DataHandler {
             WARN(`No config exists for channel ${discordID}`);
             return false;
         }
-        const result = await this.rmConfig(discordID);
-        if(!result) {
-            ERR("Failed to remove old configuration");
-            return false;
-        }
         const path = this.getFilePath(discordID, groupMeChannel.getID());
-        this.addConfig(discordID, groupMeChannel);
+        const json = JSON.stringify(groupMeChannel);
+        fs.writeFile(path, json, (err) => this.handleIOErr(err));
         return true;
     }
 
@@ -47,7 +43,7 @@ export default class DataHandler {
         catch(err) {
             this.handleIOErr(err);
             return false;
-        };
+        }
     }
 
     public static async getConfig(discordID:string) {
@@ -57,6 +53,7 @@ export default class DataHandler {
             const data = await readFile(path, {encoding:"utf-8"});
             const json = JSON.parse(data);
             const channel = new GroupMeChannel(json.id, json.name);
+            channel.setLastMessageID(json.lastMessageID);
             return channel;
         }
         catch(err) {

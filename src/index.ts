@@ -26,9 +26,6 @@ class Init {
 			INFO("DiscordMe Starting");
 			this.commandsHandler.register();
 			this.handleCommands();
-			this.handleModals();
-			this.handleButtons();
-			this.handleMenuInteractions();
 			INFO("DiscordMe Online")
 		});
 
@@ -64,28 +61,6 @@ class Init {
 			}
 		});
 	}
-
-	private handleModals() {
-		this.client.on(Events.InteractionCreate, async (interaction) => {
-			if(!interaction.isModalSubmit()) return;
-			const modalId = interaction.customId;
-		});
-	}
-
-	private handleButtons() {
-		this.client.on(Events.InteractionCreate, async (interaction) => {
-			if(!interaction.isButton()) return;
-			const buttonId = interaction.customId;
-		});
-	}
-
-	private handleMenuInteractions() {
-		this.client.on(Events.InteractionCreate, async (interaction) => {
-			if(!interaction.isStringSelectMenu()) return;
-			const menuID = interaction.customId;
-		})
-	}
-
 }
 
 new Init().main();

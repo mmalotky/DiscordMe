@@ -1,4 +1,4 @@
-import { APIEmbed, bold } from "discord.js";
+import { APIEmbed, Colors, bold } from "discord.js";
 import { GroupMeAttachment, GroupMeEmojiAttachment, GroupMeEventAttachment, GroupMeFileAttachment, GroupMeImageAttachment, GroupMeLocationAttachment, GroupMeMentionsAttachment, GroupMePollAttachment, GroupMeReplyAttachment, GroupMeSplitAttachment, GroupMeVideoAttachment } from "../models/GroupMeAttachment";
 import GroupMeMember from "../models/GroupMeMember";
 import GroupMeMessage from "../models/GroupMeMessage";
@@ -118,25 +118,19 @@ export function parceGroupMeMessage(json: GroupMeAPIMessage) {
 }
 
 export function parceDiscordMessage(gmMessage:GroupMeMessage) {
-    const buffer = "_________\n"
     const tag = getTag(gmMessage);
     const content = getContent(gmMessage);
     const embeds = getEmbeds(gmMessage);
     
     return {
-        content: buffer + tag + content,
+        content: tag + content,
         embeds: embeds
     }
 }
 
 function getTag(gmMessage:GroupMeMessage) {
     const time = `<t:${Math.floor(gmMessage.getCreatedOn().getTime()/1000)}>`;
-    if(gmMessage.getIsSystem()) {
-        return `[${ time }]   `;
-    }
-    else {
-        return `[${ time }] ${ bold(gmMessage.getMember().getName()) } :   `;
-    }
+    return `[${ time }]   `;
 }
 
 function getContent(gmMessage:GroupMeMessage) {

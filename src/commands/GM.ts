@@ -70,16 +70,17 @@ export default class GM implements Command {
         }
     }
     private async update(interaction: ChatInputCommandInteraction) {
-        const channel = await DataHandler.getConfig(interaction.channelId);
-        if(!channel) return;
+        const groupMeChannel = await DataHandler.getConfig(interaction.channelId);
+        const discordChannel = interaction.channel;
+        if(!groupMeChannel || !discordChannel) return;
 
-        const messages = await this.gmController.getMessages(channel);
+        const messages = await this.gmController.getMessages(groupMeChannel);
         for(const message of messages) {
             const payload = parceDiscordMessage(message);
-            interaction.channel?.send(payload);
+            discordChannel.send(payload);
 
-            channel.setLastMessageID(message.getID());
-            DataHandler.setConfig(interaction.channelId, channel);
+            groupMeChannel.setLastMessageID(message.getID());
+            DataHandler.setConfig(interaction.channelId, groupMeChannel);
         }
 
         if(messages.length === 0) {

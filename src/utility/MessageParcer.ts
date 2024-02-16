@@ -1,4 +1,4 @@
-import { heading } from "discord.js";
+import { bold } from "discord.js";
 import { GroupMeAttachment, GroupMeEmojiAttachment, GroupMeEventAttachment, GroupMeFileAttachment, GroupMeImageAttachment, GroupMeLocationAttachment, GroupMeMentionsAttachment, GroupMePollAttachment, GroupMeReplyAttachment, GroupMeSplitAttachment, GroupMeVideoAttachment } from "../models/GroupMeAttachment";
 import GroupMeMember from "../models/GroupMeMember";
 import GroupMeMessage from "../models/GroupMeMessage";
@@ -46,8 +46,8 @@ export function parceGroupMeMessage(json) {
                 attachments.push(video);
                 break;
             case "file":
-                const filUrl:string = raw.url;
-                const file = new GroupMeFileAttachment(filUrl);
+                const filId:string = raw.id;
+                const file = new GroupMeFileAttachment(filId);
                 attachments.push(file);
                 break;
             case "reply":
@@ -80,35 +80,31 @@ export function parceGroupMeMessage(json) {
 }
 
 export function parceDiscordMessage(gmMessage:GroupMeMessage) {
+    const buffer = "_________\n"
     const tag = getTag(gmMessage);
     const content = getContent(gmMessage);
     const embeds = getEmbeds(gmMessage);
     
     return {
-        content: `${heading(tag, 3)}\n${content}`,
+        content: buffer + tag + content,
         embeds: embeds
     }
 }
 
 function getTag(gmMessage:GroupMeMessage) {
+    const time = `<t:${Math.floor(gmMessage.getCreatedOn().getTime()/1000)}>`;
     if(gmMessage.getIsSystem()) {
-        return `[${
-            gmMessage.getCreatedOn().toLocaleString()
-        }] `;
+        return `[${ time }]   `;
     }
     else {
-        return `[${
-            gmMessage.getCreatedOn().toLocaleString()
-        }] ${
-            gmMessage.getMember().getName()
-        } : `;
+        return `[${ time }] ${ bold(gmMessage.getMember().getName()) } :   `;
     }
 }
 
 function getContent(gmMessage:GroupMeMessage) {
     const attachments = gmMessage.getAttachments();
     const emojis = attachments.filter(a => a instanceof GroupMeEmojiAttachment);
-    let text = gmMessage.getText();
+    let text = gmMessage.getText()? gmMessage.getText() : "";
     
     for(const emoji of emojis) {
         const placeholder = emoji.content;
@@ -135,18 +131,12 @@ function getEmbeds(gmMessage:GroupMeMessage) {
     const attachments:GroupMeAttachment[] = gmMessage.getAttachments();
     const embeds:any[] = [];
 
-    const files = attachments.filter(a => a instanceof GroupMeFileAttachment)
-        .map(a => {
-            const url = a.content;
-            return {
-                url:url
-            }
-        });
     const images = attachments.filter(a => a instanceof GroupMeImageAttachment)
         .map(a => {
-            const url = a.content
+            const url = a.content            
             return {
                 image: {
+                    title: "GroupMe Image",
                     url:url
                 }
             }
@@ -156,12 +146,13 @@ function getEmbeds(gmMessage:GroupMeMessage) {
             const url = a.content
             return {
                 image: {
+                    title: "GroupMe Video",
                     url:url
                 }
             }
         });
     
-    embeds.push(...files, ...images, ...videos);
+    embeds.push(...images, ...videos);
 
     return embeds;
 }

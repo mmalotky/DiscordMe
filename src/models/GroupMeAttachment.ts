@@ -19,9 +19,9 @@ export class GroupMeVideoAttachment extends GroupMeAttachment {
 }
 
 export class GroupMeFileAttachment extends GroupMeAttachment {
-    constructor(url:string) {
+    constructor(id:string) {
         super();
-        this.content = url;
+        this.content = id;
     }
 }
 

@@ -1,78 +1,116 @@
-import { bold } from "discord.js";
+import { APIEmbed, bold } from "discord.js";
 import { GroupMeAttachment, GroupMeEmojiAttachment, GroupMeEventAttachment, GroupMeFileAttachment, GroupMeImageAttachment, GroupMeLocationAttachment, GroupMeMentionsAttachment, GroupMePollAttachment, GroupMeReplyAttachment, GroupMeSplitAttachment, GroupMeVideoAttachment } from "../models/GroupMeAttachment";
 import GroupMeMember from "../models/GroupMeMember";
 import GroupMeMessage from "../models/GroupMeMessage";
 import { WARN } from "./LogMessage";
 import { emojiMap } from "./GroupMeEmojiMap";
 
-export function parceGroupMeMessage(json) {
-    const id:string = json.id;
+export type GroupMeAPIMessage = {
+    id: string; 
+    user_id: string; 
+    name: string; 
+    avatar_url: string; 
+    group_id: string; 
+    created_at: number; 
+    text: string; 
+    system: boolean; 
+    attachments: GroupMeAPIAttachment[]; 
+}
+
+type GroupMeAPIAttachment = {
+    type:string,
+    url:string,
+    placeholder:string,
+    charmap:number[][],
+    name:string,
+    lng:string,
+    lat:string,
+    token:string,
+    id:string,
+    reply_id:string,
+    user_ids:string[],
+    loci:number[][]
+};
+
+export function parceGroupMeMessage(json: GroupMeAPIMessage) {
+    const id = json.id;
     const member = new GroupMeMember(json.user_id, json.name, json.avatar_url);
-    const groupID:string = json.group_id;
+    const groupID = json.group_id;
     const createdOn = new Date(json.created_at * 1000);
     const text = json.text;
-    const isSystem:boolean = json.system;
+    const isSystem = json.system;
 
     const attachments:GroupMeAttachment[] = [];
-    const rawAttachments:any[] = json.attachments;
+    const rawAttachments = json.attachments;
     for(const raw of rawAttachments) {
         switch(raw.type) {
-            case "image":
-                const imgUrl:string = raw.url;
+            case "image": {
+                const imgUrl = raw.url;
                 const image = new GroupMeImageAttachment(imgUrl);
                 attachments.push(image);
                 break;
-            case "emoji":
-                const placeholder:string = raw.placeholder;
-                const charmap:number[][] = raw.charmap;
+            }
+            case "emoji": {
+                const placeholder = raw.placeholder;
+                const charmap = raw.charmap;
                 const emoji = new GroupMeEmojiAttachment(placeholder, charmap);
                 attachments.push(emoji);
                 break;
-            case "location":
-                const name:string = raw.name;
-                const lat:string = raw.lat;
-                const lng:string = raw.lng;
+            }
+            case "location": {
+                const name = raw.name;
+                const lat = raw.lat;
+                const lng = raw.lng;
                 const location = new GroupMeLocationAttachment(name, lat, lng);
                 attachments.push(location);
                 break;
-            case "split":
-                const token:string = raw.token;
+            }
+            case "split": {
+                const token = raw.token;
                 const split = new GroupMeSplitAttachment(token);
                 attachments.push(split);
                 break;
-            case "video":
-                const vidUrl:string = raw.url;
+            }
+            case "video": {
+                const vidUrl = raw.url;
                 const video = new GroupMeVideoAttachment(vidUrl);
                 attachments.push(video);
                 break;
-            case "file":
-                const filId:string = raw.id;
+            }
+            case "file": {
+                const filId = raw.id;
                 const file = new GroupMeFileAttachment(filId);
                 attachments.push(file);
                 break;
-            case "reply":
+            }
+            case "reply": {
                 const replyID = raw.reply_id;
                 const reply = new GroupMeReplyAttachment(replyID);
                 attachments.push(reply);
                 break;
-            case "mentions":
-                const userIDs:string[] = raw.user_ids;
-                const loci:number[][] = raw.loci;
+            }
+            case "mentions": {
+                const userIDs = raw.user_ids;
+                const loci = raw.loci;
                 const mentions = new GroupMeMentionsAttachment(userIDs, loci);
                 attachments.push(mentions);
                 break;
-            case "poll":
+            }
+            case "poll": {
                 const pollID = raw.id;
                 const poll = new GroupMePollAttachment(pollID);
                 attachments.push(poll);
                 break;
-            case "event":
+            }
+            case "event": {
                 const eventID = raw.id;
                 const event = new GroupMeEventAttachment(eventID);
                 attachments.push(event);
                 break;
-            default:
-                WARN(`Attatchment type ${raw.type} not recognised.`)
+            }
+            default: {
+                WARN(`Attatchment type ${raw.type} not recognised.`);
+            }
         }
     }
 
@@ -129,11 +167,11 @@ function getContent(gmMessage:GroupMeMessage) {
 
 function getEmbeds(gmMessage:GroupMeMessage) {
     const attachments:GroupMeAttachment[] = gmMessage.getAttachments();
-    const embeds:any[] = [];
+    const embeds:APIEmbed[] = [];
 
     const images = attachments.filter(a => a instanceof GroupMeImageAttachment)
         .map(a => {
-            const url = a.content            
+            const url = a.content;          
             return {
                 image: {
                     title: "GroupMe Image",
@@ -145,7 +183,7 @@ function getEmbeds(gmMessage:GroupMeMessage) {
         .map(a => {
             const url = a.content
             return {
-                image: {
+                video: {
                     title: "GroupMe Video",
                     url:url
                 }

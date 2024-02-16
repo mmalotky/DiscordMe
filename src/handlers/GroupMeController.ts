@@ -2,7 +2,7 @@ import { error } from "console";
 import GroupMeChannel from "../models/GroupMeChannel";
 import { ERR } from "../utility/LogMessage";
 import GroupMeMessage from "../models/GroupMeMessage";
-import { parceGroupMeMessage } from "../utility/MessageParcer";
+import { GroupMeAPIMessage, parceGroupMeMessage } from "../utility/MessageParcer";
 
 export default class GroupMeController {
     private GROUPME_TOKEN:string;
@@ -40,7 +40,7 @@ export default class GroupMeController {
             if(response.status !== 200) throw error(`Request failed with status ${response.status}`);
 
             const json = await response.json();
-            const data:any[] = json.response;
+            const data:GroupMeAPIMessage[] = json.response;
             const channels = data.map(ch => new GroupMeChannel(ch.id, ch.name));
             return channels;
         }
@@ -74,7 +74,7 @@ export default class GroupMeController {
             if(response.status !== 200) throw error(`Request failed with status ${response.status}`);
 
             const json = await response.json();
-            const raw:any[] = json.response.messages;
+            const raw:GroupMeAPIMessage[] = json.response.messages;
             const messages:GroupMeMessage[] = [];
 
             for(const data of raw) {

@@ -1,7 +1,7 @@
 import fs from "fs";
 import { readdir, readFile, rm } from "fs/promises";
 import GroupMeChannel from "../models/GroupMeChannel";
-import { ERR, WARN } from "../utility/LogMessage";
+import { WARN } from "../utility/LogMessage";
 
 export default class DataHandler {
     private static DATA_PATH = "./data";

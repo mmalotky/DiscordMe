@@ -1,5 +1,5 @@
 {
-  "name": "pollster",
+  "name": "discordme",
   "version": "1.0.0",
   "description": "Discord Bot for creating polls.",
   "type": "module",
@@ -26,11 +26,13 @@
     "lint": "eslint --fix ."
   },
   "devDependencies": {
+    "@types/jest": "*",
     "@typescript-eslint/eslint-plugin": "*",
     "@typescript-eslint/parser": "*",
     "eslint": "*",
     "eslint-plugin-tsdoc": "*",
-    "npm-watch": "*"
+    "npm-watch": "*",
+    "ts-jest":"*"
   },
   "dependencies": {
     "@swc/core": "*",

@@ -23,7 +23,8 @@
   "scripts": {
     "watch": "npm-watch",
     "start": "tsx ./src/index.ts",
-    "lint": "eslint --fix ."
+    "lint": "eslint --fix .",
+    "test": "jest"
   },
   "devDependencies": {
     "@types/jest": "*",

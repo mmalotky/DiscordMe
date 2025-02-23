@@ -1,3 +1,5 @@
+/** Class Definitions for GroupMe Attachements */
+
 export class GroupMeAttachment {
     content:string;
     list:string[];

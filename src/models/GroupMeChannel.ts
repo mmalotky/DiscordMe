@@ -1,4 +1,8 @@
 export default class GroupMeChannel {
+    /**
+     * Model for GroupMe Channel for encoding persistant data
+     */
+
     private id:string;
     private name:string;
     private lastMessageID:string = "0";

@@ -1,10 +1,13 @@
-import { APIEmbed, Colors, bold } from "discord.js";
+import { APIEmbed } from "discord.js";
 import { GroupMeAttachment, GroupMeEmojiAttachment, GroupMeEventAttachment, GroupMeFileAttachment, GroupMeImageAttachment, GroupMeLocationAttachment, GroupMeMentionsAttachment, GroupMePollAttachment, GroupMeReplyAttachment, GroupMeSplitAttachment, GroupMeVideoAttachment } from "../models/GroupMeAttachment";
 import GroupMeMember from "../models/GroupMeMember";
 import GroupMeMessage from "../models/GroupMeMessage";
 import { WARN } from "./LogMessage";
 import { emojiMap } from "./GroupMeEmojiMap";
 
+/**
+ * JSON message data recieved from GroupMe API
+ */
 export type GroupMeAPIMessage = {
     id: string; 
     user_id: string; 
@@ -17,6 +20,7 @@ export type GroupMeAPIMessage = {
     attachments: GroupMeAPIAttachment[]; 
 }
 
+/** JSON attaachment data recieved from GroupMe API */
 type GroupMeAPIAttachment = {
     type:string,
     url:string,
@@ -32,6 +36,7 @@ type GroupMeAPIAttachment = {
     loci:number[][]
 };
 
+/** Convert GroupMe API message data to GroupMeMessage Model */
 export function parceGroupMeMessage(json: GroupMeAPIMessage) {
     const id = json.id;
     const member = new GroupMeMember(json.user_id, json.name, json.avatar_url);
@@ -117,6 +122,7 @@ export function parceGroupMeMessage(json: GroupMeAPIMessage) {
     return new GroupMeMessage(id, member, groupID, createdOn, text, attachments, isSystem);
 }
 
+/** Convert GroupMeMessage Model into a Discord Message */
 export function parceDiscordMessage(gmMessage:GroupMeMessage) {
     const tag = getTag(gmMessage);
     const content = getContent(gmMessage);
@@ -128,11 +134,13 @@ export function parceDiscordMessage(gmMessage:GroupMeMessage) {
     }
 }
 
+/** Utility Funtion to get the GroupMe Message's sending date and return it as a formatted string */
 function getTag(gmMessage:GroupMeMessage) {
     const time = `<t:${Math.floor(gmMessage.getCreatedOn().getTime()/1000)}>`;
     return `[${ time }]   `;
 }
 
+/** Utility function to add inline attachments to the GroupMe Message content body */
 function getContent(gmMessage:GroupMeMessage) {
     const attachments = gmMessage.getAttachments();
     const emojis = attachments.filter(a => a instanceof GroupMeEmojiAttachment);
@@ -159,6 +167,7 @@ function getContent(gmMessage:GroupMeMessage) {
     return text;
 }
 
+/** Format GroupMe Message attachments as embeds in a Discord message */
 function getEmbeds(gmMessage:GroupMeMessage) {
     const attachments:GroupMeAttachment[] = gmMessage.getAttachments();
     const embeds:APIEmbed[] = [];

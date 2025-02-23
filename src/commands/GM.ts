@@ -6,12 +6,23 @@ import { parceDiscordMessage } from "../utility/MessageParcer.js";
 import WebHooksHandler from "../handlers/WebhooksHandler.js";
 
 export default class GM implements Command {
+    /**
+     * GM Command class. Allows bot configuration within discord servers
+     * and pulling GroupMe chat history into the configured Channel.
+     * 
+     * @param GroupMeController
+     */
+
     private gmController:GroupMeController;
 
     constructor(controller:GroupMeController) {
         this.gmController = controller;
     }
 
+    /** 
+     * Metadata for the Discord Command
+     * Builds the discord slash command and any subcommands
+     * */
     private data = new SlashCommandBuilder()
         .setName("gm")
         .setDescription("GroupMe Bot controller")
@@ -42,8 +53,13 @@ export default class GM implements Command {
                 .setDescription("Get messages since last update");
         });
 
+    /** Interface implimentation for returning metadata */
     getData() { return this.data; }
     
+    /** 
+     * Interface implimentation of executing the slash command.
+     * Selects from the list of subcommands.
+     */
     async execute(interaction:ChatInputCommandInteraction) {
         const subcommand = interaction.options.getSubcommand();
         switch(subcommand) {
@@ -70,6 +86,14 @@ export default class GM implements Command {
             });
         }
     }
+
+    /** 
+     * Update subcommand.
+     * Pulls data from Groupme and adds sends any new messages to the discord client.
+     * Updates the lastest message ID for each message sent.
+     * Creates Webhooks to emulate different GroupMe Users
+     * @param interaction
+     * */
     private async update(interaction: ChatInputCommandInteraction) {
         const webHookHandler =  new WebHooksHandler();
         const groupMeChannel = await DataHandler.getConfig(interaction.channelId);
@@ -112,6 +136,14 @@ export default class GM implements Command {
         }
     }
 
+    /** 
+     * Config subcommand.
+     * Configures a Discord channel to recieve messages from a GroupMe
+     * channel when the update command is run. Stores the preferances
+     * perminent data. Does not update a Discord Channel with an existing
+     * configuration (see setConfig). 
+     * @param interaction
+     * */
     private async config(interaction:ChatInputCommandInteraction) {
         const channel = await this.getChannel(interaction);
         if(!channel) return;
@@ -132,12 +164,19 @@ export default class GM implements Command {
         }
     }
 
+    /**
+     * SetConfig Subcommand.
+     * Updates an existing configuration for a discord channel.
+     * @param interaction 
+     */
     private async setConfig(interaction:ChatInputCommandInteraction) {
         const channel = await this.getChannel(interaction);
         if(!channel) return;
-        const sucess = await DataHandler.setConfig(interaction.channelId, channel);
 
-        if(sucess) {
+        const rm = await DataHandler.rmConfig(interaction.channelId);
+        const add = await DataHandler.addConfig(interaction.channelId, channel);
+
+        if(rm && add) {
             interaction.reply({
                 content:`Configured to channel ${channel.getName()}`,
                 ephemeral:true
@@ -151,6 +190,11 @@ export default class GM implements Command {
         }
     }
 
+    /**
+     * GetCongig Subcommand
+     * Sents the current GroupMe Channel configured to a Discord Channel
+     * @param interaction 
+     */
     private async getConfig(interaction:ChatInputCommandInteraction) {
         const channel = await DataHandler.getConfig(interaction.channelId);
 
@@ -168,6 +212,15 @@ export default class GM implements Command {
         }
     }
 
+    /**
+     * A utility function for pulling GroupMe Channels available for configuation
+     * and comparing to a string parameter in the Discord interaction.
+     * 
+     * @TODO Discuss Security and Privacy Implications!
+     * 
+     * @param interaction 
+     * @returns List of available channel names
+     */
     private async getChannel(interaction:ChatInputCommandInteraction) {
         const channelName = interaction.options.getString("channel", true);
         const response = await this.gmController.getChannelByName(channelName);

@@ -5,6 +5,11 @@ import GroupMeController from "./handlers/GroupMeController.js";
 import { ERR, INFO } from "./utility/LogMessage.js";
 
 class Init {
+	/**
+	 * Set up, initiation, and start up scripts.
+	 */
+
+	/** Setup Discord Client */
 	private client = new Client({
 		intents:[
 			IntentsBitField.Flags.Guilds,
@@ -14,9 +19,15 @@ class Init {
 		]
 	});
 
+	/** Initiate GroupMe Controller */
 	private groupMeController = new GroupMeController();
+	/** Initiate Discord Commands */
 	private commandsHandler = new CommandsHandler(this.groupMeController);
 
+	/** 
+	 * Start up scripts. Aquire Tokens for GroupMe and Discord, 
+	 * register new commands, and begin listening for Discord Commands
+	 * */
 	main() {
 		dotenv.config();
 		this.client.login(process.env.DISCORD_TOKEN);
@@ -31,6 +42,11 @@ class Init {
 
 	}
 
+	/** 
+	 * Listen for Discord commands. Look up registered command, then execute the
+	 * command according to the interaction parameters, sends an error message to
+	 * Discord if the operation fails.
+	 */
 	private handleCommands() {
 		this.client.on(Events.InteractionCreate, async (interaction) => {
 			if(!interaction.isChatInputCommand()) return;

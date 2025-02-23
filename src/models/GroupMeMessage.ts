@@ -2,6 +2,10 @@ import { GroupMeAttachment } from "./GroupMeAttachment";
 import GroupMeMember from "./GroupMeMember";
 
 export default class GroupMeMessage {
+    /**
+     * GroupMe Message Model
+     */
+
     private id: string;
     private member: GroupMeMember;
     private groupID: string;

@@ -1,3 +1,5 @@
+/** Console Logging Utility functions */
+
 export function ERR(message:string) {
     console.error(`[ERR] ${message}`);
 }

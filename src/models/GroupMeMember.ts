@@ -1,4 +1,8 @@
 export default class GroupMeMember {
+    /**
+     * GroupMe member model
+     */
+
     private id:string;
     private name:string;
     private avatarURL:string;

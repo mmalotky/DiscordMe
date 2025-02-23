@@ -5,10 +5,22 @@ import GM from "../commands/GM.js";
 import GroupMeController from "./GroupMeController.js";
 
 export default class CommandsHandler {
+    /**
+     * Commands Handler. Manage and register bot commands
+     * 
+     * @param GroupMeController
+     */
+
+    /** List of Slash commands */
     private commands:Command[] = [];
+
+    /** JSON format of Command List to register commands with discord servers */
     private commandsJSON:RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
+
+    /** REST client to send registered commands */
     private rest = new REST({version:'10'});
 
+    /** New commands must be configured here */
     constructor(gmController:GroupMeController) {
         dotenv.config();
 
@@ -20,10 +32,12 @@ export default class CommandsHandler {
         else console.log("[ERR]: No discord token found");
     }
 
+    /** Returns the list of commands */
     getCommands() {
         return this.commands;
     }
 
+    /** Sends list of commands to Discord. Should be used during start up. */
     register() {
         try {
             console.log("[INFO] Registering commands...");

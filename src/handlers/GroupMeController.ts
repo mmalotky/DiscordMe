@@ -5,20 +5,27 @@ import GroupMeMessage from "../models/GroupMeMessage";
 import { GroupMeAPIMessage, parceGroupMeMessage } from "../utility/MessageParcer";
 
 export default class GroupMeController {
+    /**
+     * Send data requests to GroupMe
+     */
+
     private GROUPME_TOKEN:string;
 
     private GROUPME_URL:string = "https://api.groupme.com/v3";
 
+    /** Set the GroupMe Access Token */
     public setToken(token?:string) {
         if(token) this.GROUPME_TOKEN = token;
         else ERR("No GroupMe token defined.");
     }
 
+    /** Get the GroupMe Channel Model from the name */
     public async getChannelByName(name:string) {
         const channels = await this.getChannels();
         return channels.filter(c => c.getName() === name);
     }
 
+    /** Get a list of available GroupMe Channels */
     private async getChannels() {
         const channels:GroupMeChannel[] = [];
         let page:number = 0;
@@ -33,6 +40,7 @@ export default class GroupMeController {
         return channels;
     }
     
+    /** Utility function for iterating through pages of the GroupMe Channel List */
     private async getPageChannels(page:number) {
         try{
             const url = `${this.GROUPME_URL}/groups?token=${this.GROUPME_TOKEN}&page=${page}`;
@@ -49,6 +57,7 @@ export default class GroupMeController {
         }
     }
 
+    /** Get the messages from a GroupMe Channel staring from the last message ID in persistant data */
     public async getMessages(channel:GroupMeChannel) {
         const messages:GroupMeMessage[] = [];
         let messagePage:GroupMeMessage[] | void;
@@ -67,6 +76,7 @@ export default class GroupMeController {
         return messages;
     }
 
+    /** Utility function for iterating through pages of channel messages */
     private async getMessagesAfterID(channelID:string, lastID:string) {
         try{
             const url = `${this.GROUPME_URL}/groups/${channelID}/messages?token=${this.GROUPME_TOKEN}&after_id=${lastID}`;

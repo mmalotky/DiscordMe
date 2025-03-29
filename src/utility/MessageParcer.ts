@@ -2,6 +2,7 @@ import { APIEmbed } from "discord.js";
 import { GroupMeAttachment, GroupMeEmojiAttachment, GroupMeEventAttachment, GroupMeFileAttachment, GroupMeImageAttachment, GroupMeLocationAttachment, GroupMeMentionsAttachment, GroupMePollAttachment, GroupMeReplyAttachment, GroupMeSplitAttachment, GroupMeVideoAttachment } from "../models/GroupMeAttachment";
 import GroupMeMember from "../models/GroupMeMember";
 import GroupMeMessage from "../models/GroupMeMessage";
+import GroupMeImageController from "../handlers/GroupMeImageController";
 import { WARN } from "./LogMessage";
 import { emojiMap } from "./GroupMeEmojiMap";
 
@@ -37,7 +38,7 @@ type GroupMeAPIAttachment = {
 };
 
 /** Convert GroupMe API message data to GroupMeMessage Model */
-export function parceGroupMeMessage(json: GroupMeAPIMessage) {
+export async function parceGroupMeMessage(json: GroupMeAPIMessage, imageController:GroupMeImageController) {
     const id = json.id;
     const member = new GroupMeMember(json.user_id, json.name, json.avatar_url);
     const groupID = json.group_id;
@@ -51,8 +52,9 @@ export function parceGroupMeMessage(json: GroupMeAPIMessage) {
         switch(raw.type) {
             case "image": {
                 const imgUrl = raw.url;
-                const image = new GroupMeImageAttachment(imgUrl);
-                attachments.push(image);
+                const image = await imageController.getImage(imgUrl);
+                const imageAttachment = new GroupMeImageAttachment(image);
+                attachments.push(imageAttachment);
                 break;
             }
             case "emoji": {
@@ -174,7 +176,7 @@ function getEmbeds(gmMessage:GroupMeMessage) {
 
     const images = attachments.filter(a => a instanceof GroupMeImageAttachment)
         .map(a => {
-            const url = a.content;          
+            const url = a.content;
             return {
                 image: {
                     title: "GroupMe Image",
@@ -184,7 +186,7 @@ function getEmbeds(gmMessage:GroupMeMessage) {
         });
     const videos = attachments.filter(a => a instanceof GroupMeVideoAttachment)
         .map(a => {
-            const url = a.content
+            const url = a.content;
             return {
                 video: {
                     title: "GroupMe Video",

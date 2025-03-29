@@ -2,6 +2,7 @@ import { error } from "console";
 import GroupMeChannel from "../models/GroupMeChannel";
 import { ERR } from "../utility/LogMessage";
 import GroupMeMessage from "../models/GroupMeMessage";
+import GroupMeImageController from "./GroupMeImageController";
 import { GroupMeAPIMessage, parceGroupMeMessage } from "../utility/MessageParcer";
 
 export default class GroupMeController {
@@ -12,6 +13,8 @@ export default class GroupMeController {
     private GROUPME_TOKEN:string;
 
     private GROUPME_URL:string = "https://api.groupme.com/v3";
+
+    private imageController = new GroupMeImageController();
 
     /** Set the GroupMe Access Token */
     public setToken(token?:string) {
@@ -88,7 +91,7 @@ export default class GroupMeController {
             const messages:GroupMeMessage[] = [];
 
             for(const data of raw) {
-                const message = parceGroupMeMessage(data);
+                const message = await parceGroupMeMessage(data, this.imageController);
                 messages.push(message);
             }
 

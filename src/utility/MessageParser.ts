@@ -17,6 +17,7 @@ import GroupMeMessage from "../models/GroupMeMessage";
 import GroupMeImageController from "../handlers/GroupMeImageController";
 import { ERR, WARN } from "./LogMessage";
 import { emojiMap } from "./GroupMeEmojiMap";
+import { GroupMeMessageParseError } from "../errors";
 
 /**
  * JSON message data received from GroupMe API
@@ -49,11 +50,13 @@ type GroupMeAPIAttachment = {
   loci: number[][];
 };
 
-/** Convert GroupMe API message data to GroupMeMessage Model */
+/** Convert GroupMe API message data to GroupMeMessage Model
+ * @throws GroupMeMessageParseError
+ */
 export async function parseGroupMeMessage(
   json: GroupMeAPIMessage,
   imageController: GroupMeImageController
-) {
+): Promise<GroupMeMessage> {
   const id = json.id;
   const member = new GroupMeMember(json.user_id, json.name, json.avatar_url);
   const groupID = json.group_id;
@@ -71,19 +74,15 @@ export async function parseGroupMeMessage(
 
         const extensionSearch = re.exec(imgUrl);
         if (!extensionSearch) {
-          ERR(`Failed to parse image type from ${imgUrl}`);
+          throw new GroupMeMessageParseError(
+            `Failed to parse image type from ${imgUrl}`
+          );
           break;
         }
         const extension = extensionSearch[0];
 
         const imgName = "GroupMeImage." + extension;
         const image = await imageController.getImage(imgUrl);
-
-        if (image == null) {
-          ERR("Failed to fetch image data for message.");
-          break;
-        }
-
         const imageAttachment = new GroupMeImageAttachment(imgName, image);
         attachments.push(imageAttachment);
         break;

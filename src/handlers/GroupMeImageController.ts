@@ -1,20 +1,17 @@
-import { Stream } from "stream";
-import { ERR } from "../utility/LogMessage";
+import { GroupMeMessageParseError } from "../errors";
 
 export default class GroupMeImageController {
-  public async getImage(url: string): Promise<Stream | null> {
-    const response = await fetch(url);
 
+  /** Fetches the image from a given URL
+  *
+  * @throws GroupMeMessageParseError
+  */
+ 
+  public async getImage(url: string): Promise<Buffer> {
+    const response = await fetch(url);  
     if (response.ok) {
-      if (response.body) {
-        return Stream.Duplex.from(response.body);
-      } else {
-        ERR(`No image found at: ${url}`);
-        return null;
-      }
-    } else {
-      ERR(`Failed to fetch: ${url}`);
-      return null;
-    }
+    if (response.body) return Buffer.from(await response.arrayBuffer());
+    else throw new GroupMeMessageParseError(`No image found at: ${url}`);
+    } else throw new GroupMeMessageParseError(`Failed to fetch: ${url}`);
   }
 }

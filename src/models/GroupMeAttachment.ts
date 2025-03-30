@@ -1,17 +1,16 @@
-import { Stream } from "stream";
 
 /** Class Definitions for GroupMe Attachments */
 
 export class GroupMeAttachment {
   name: string;
   content: string;
-  data: Stream;
+  data: Buffer;
   list: string[];
   map: number[][];
 }
 
 export class GroupMeImageAttachment extends GroupMeAttachment {
-  constructor(name: string, data: Stream) {
+  constructor(name: string, data: Buffer) {
     super();
     this.name = name;
     this.data = data;

@@ -1,8 +1,9 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, WebhookClient } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, TextBasedChannel, Webhook, WebhookClient } from "discord.js";
 import Command from "./Command.js";
 import GroupMeController from "../handlers/GroupMeController.js";
 import DataHandler from "../handlers/DataHandler.js";
 import { parseDiscordMessage } from "../utility/MessageParser.js";
+import GroupMeMessage from "../models/GroupMeMessage.js";
 import WebHooksHandler from "../handlers/WebhooksHandler.js";
 
 export default class GM implements Command {
@@ -14,9 +15,11 @@ export default class GM implements Command {
      */
 
     private gmController:GroupMeController;
+    private webHooksHandler:WebHooksHandler;
 
     constructor(controller:GroupMeController) {
         this.gmController = controller;
+        this.webHooksHandler = new WebHooksHandler(this.gmController);
     }
 
     /** 
@@ -95,7 +98,6 @@ export default class GM implements Command {
      * @param interaction
      * */
     private async update(interaction: ChatInputCommandInteraction) {
-        const webHookHandler =  new WebHooksHandler();
         const groupMeChannel = await DataHandler.getConfig(interaction.channelId);
         const discordChannel = interaction.channel;
         if(!groupMeChannel || !discordChannel) return;
@@ -116,24 +118,30 @@ export default class GM implements Command {
         }
 
         for(const message of messages) {
-            const username = message.getMember().getName();
-            const avatar = message.getIsSystem() ?
-                "https://cdn.groupme.com/images/og_image_poundie.png" :
-                "https://cdn-icons-png.freepik.com/512/8742/8742495.png";
-            
-            let webHook = await webHookHandler.getWebHookByName(discordChannel, username, avatar);
-            if(!webHook) {
-                webHook = await webHookHandler.createWebHook(discordChannel, username, avatar);
-            }
-            if(!webHook) return;
+            const webHook = await this.getWebHook(discordChannel, message);
             const webHookClient = new WebhookClient({ url:webHook.url });
 
             const payload = parseDiscordMessage(message);
-            webHookClient.send(payload);
+            await webHookClient.send(payload);
 
             groupMeChannel.setLastMessageID(message.getID());
             DataHandler.setConfig(interaction.channelId, groupMeChannel);
         }
+    }
+
+    /**
+     * Find or create a webhook for a GroupMe message
+     * @param discordChannel discord channel for the webhook
+     * @param message GroupMeMessage using the Webhook
+     * @returns Promise<Webhook>
+     */
+    private async getWebHook(discordChannel:TextBasedChannel, message:GroupMeMessage):Promise<Webhook> {
+        const username = message.getMember().getName();
+        let webHook = await this.webHooksHandler.getWebHookByName(discordChannel, username);
+        if(!webHook) {
+            webHook = await this.webHooksHandler.createWebHook(discordChannel, message);
+        }
+        return webHook;
     }
 
     /** 

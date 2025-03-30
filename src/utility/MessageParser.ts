@@ -112,7 +112,6 @@ export async function parseGroupMeMessage(
       case "video": {
         const vidUrl = raw.url;
         const video = new GroupMeVideoAttachment(vidUrl);
-        console.log(vidUrl);
         attachments.push(video);
         break;
       }

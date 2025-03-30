@@ -5,6 +5,12 @@ import GroupMeMessage from "../models/GroupMeMessage";
 export default class WebHooksHandler {
     /** Manage Discord Webhooks */
 
+    /**
+     * Edits an existing webhook according to a GroupMe message
+     * @param webHook webhook to edit
+     * @param message message to apply to
+     * @returns webhook
+     */
     public async editWebhook(webHook:Webhook, message: GroupMeMessage):Promise<Webhook> {
         const name = message.getMember().getName();
         const avatar = message.getIsSystem() ?
@@ -14,6 +20,11 @@ export default class WebHooksHandler {
         return webHook.edit({ name, avatar });
     }
 
+    /**
+     * Finds the webhook in a channel associated with the application id
+     * @param channel Discord Channel
+     * @returns Webhook attached to the application id
+     */
     public async getWebhookByChannel(channel: TextBasedChannel): Promise<Webhook> {
         if(!channel || !(channel instanceof TextChannel)) {
             throw new ConfigurationError(`Channel ${channel} not found.`);
@@ -26,7 +37,7 @@ export default class WebHooksHandler {
     }
 
     /**
-     * Creates a new webhook for a discord channel, must clear webhooks if exceeds limit
+     * Creates a new webhook for a discord channel
      * @param channel Discord Channel
      * @param name Webhook name
      * @param avatar Webhook Avatar URL

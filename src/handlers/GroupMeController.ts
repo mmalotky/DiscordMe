@@ -3,7 +3,7 @@ import GroupMeChannel from "../models/GroupMeChannel";
 import { ERR } from "../utility/LogMessage";
 import GroupMeMessage from "../models/GroupMeMessage";
 import GroupMeImageController from "./GroupMeImageController";
-import { GroupMeAPIMessage, parceGroupMeMessage } from "../utility/MessageParcer";
+import { GroupMeAPIMessage, parseGroupMeMessage } from "../utility/MessageParser";
 
 export default class GroupMeController {
     /**
@@ -91,7 +91,7 @@ export default class GroupMeController {
             const messages:GroupMeMessage[] = [];
 
             for(const data of raw) {
-                const message = await parceGroupMeMessage(data, this.imageController);
+                const message = await parseGroupMeMessage(data, this.imageController);
                 messages.push(message);
             }
 

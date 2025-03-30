@@ -4,13 +4,13 @@ import GroupMeChannel from "../models/GroupMeChannel";
 import { WARN } from "../utility/LogMessage";
 
 export default class DataHandler {
-    /** Handles persistant data storage */
+    /** Handles persistent data storage */
     private static DATA_PATH = "./data";
 
     /** 
-     * stores configuations between Discord and GroupMe channels by creating a new
+     * stores configurations between Discord and GroupMe channels by creating a new
      * file labeled put under a folder for the DiscordID, named by the GroupMe Channel
-     * ID. Does not update existing configuations.
+     * ID. Does not update existing configurations.
      * 
      * @param discordID Discord channel ID
      * @param groupMeChannel GroupMe Channel Model
@@ -49,7 +49,7 @@ export default class DataHandler {
     }
 
     /**
-     * Removes an existing configuration for a Discord Channnel
+     * Removes an existing configuration for a Discord Channel
      * 
      * @param discordID Discord Channel ID
      */

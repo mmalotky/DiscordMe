@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder, WebhookClient } from 
 import Command from "./Command.js";
 import GroupMeController from "../handlers/GroupMeController.js";
 import DataHandler from "../handlers/DataHandler.js";
-import { parceDiscordMessage } from "../utility/MessageParcer.js";
+import { parseDiscordMessage } from "../utility/MessageParser.js";
 import WebHooksHandler from "../handlers/WebhooksHandler.js";
 
 export default class GM implements Command {
@@ -53,11 +53,11 @@ export default class GM implements Command {
                 .setDescription("Get messages since last update");
         });
 
-    /** Interface implimentation for returning metadata */
+    /** Interface implementation for returning metadata */
     getData() { return this.data; }
     
     /** 
-     * Interface implimentation of executing the slash command.
+     * Interface implementation of executing the slash command.
      * Selects from the list of subcommands.
      */
     async execute(interaction:ChatInputCommandInteraction) {
@@ -89,8 +89,8 @@ export default class GM implements Command {
 
     /** 
      * Update subcommand.
-     * Pulls data from Groupme and adds sends any new messages to the discord client.
-     * Updates the lastest message ID for each message sent.
+     * Pulls data from GroupMe and adds sends any new messages to the discord client.
+     * Updates the latest message ID for each message sent.
      * Creates Webhooks to emulate different GroupMe Users
      * @param interaction
      * */
@@ -128,7 +128,7 @@ export default class GM implements Command {
             if(!webHook) return;
             const webHookClient = new WebhookClient({ url:webHook.url });
 
-            const payload = parceDiscordMessage(message);
+            const payload = parseDiscordMessage(message);
             webHookClient.send(payload);
 
             groupMeChannel.setLastMessageID(message.getID());
@@ -138,9 +138,9 @@ export default class GM implements Command {
 
     /** 
      * Config subcommand.
-     * Configures a Discord channel to recieve messages from a GroupMe
-     * channel when the update command is run. Stores the preferances
-     * perminent data. Does not update a Discord Channel with an existing
+     * Configures a Discord channel to receive messages from a GroupMe
+     * channel when the update command is run. Stores the preferences
+     * permanent data. Does not update a Discord Channel with an existing
      * configuration (see setConfig). 
      * @param interaction
      * */
@@ -148,9 +148,9 @@ export default class GM implements Command {
         const channel = await this.getChannel(interaction);
         if(!channel) return;
 
-        const sucess = await DataHandler.addConfig(interaction.channelId, channel);
+        const success = await DataHandler.addConfig(interaction.channelId, channel);
 
-        if(sucess) {
+        if(success) {
             interaction.reply({
                 content:`Configured to channel ${channel.getName()}`,
                 ephemeral:true
@@ -191,8 +191,8 @@ export default class GM implements Command {
     }
 
     /**
-     * GetCongig Subcommand
-     * Sents the current GroupMe Channel configured to a Discord Channel
+     * GetConfig Subcommand
+     * Sends the current GroupMe Channel configured to a Discord Channel
      * @param interaction 
      */
     private async getConfig(interaction:ChatInputCommandInteraction) {
@@ -213,7 +213,7 @@ export default class GM implements Command {
     }
 
     /**
-     * A utility function for pulling GroupMe Channels available for configuation
+     * A utility function for pulling GroupMe Channels available for configuration
      * and comparing to a string parameter in the Discord interaction.
      * 
      * @TODO Discuss Security and Privacy Implications!

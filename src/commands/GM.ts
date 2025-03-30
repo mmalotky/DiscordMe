@@ -19,7 +19,7 @@ export default class GM implements Command {
 
     constructor(controller:GroupMeController) {
         this.gmController = controller;
-        this.webHooksHandler = new WebHooksHandler(this.gmController);
+        this.webHooksHandler = new WebHooksHandler();
     }
 
     /** 
@@ -136,13 +136,13 @@ export default class GM implements Command {
      * @returns Promise<Webhook>
      */
     private async getWebHook(discordChannel:TextBasedChannel, message:GroupMeMessage):Promise<Webhook> {
-        const username = message.getMember().getName();
-        let webHook = await this.webHooksHandler.getWebHookByName(discordChannel, username);
-        if(!webHook) {
-            webHook = await this.webHooksHandler.createWebHook(discordChannel, message);
-        }
-        return webHook;
+        let webHook = await this.webHooksHandler.getWebhookByChannel(discordChannel);
+
+        if(!webHook) return await this.webHooksHandler.createWebHook(discordChannel, message);
+        else if(webHook.name === message.getMember().getName()) return webHook;
+        else return await this.webHooksHandler.editWebhook(webHook, message);
     }
+
 
     /** 
      * Config subcommand.

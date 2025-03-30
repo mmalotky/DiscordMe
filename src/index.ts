@@ -25,7 +25,7 @@ class Init {
 	private commandsHandler = new CommandsHandler(this.groupMeController);
 
 	/** 
-	 * Start up scripts. Aquire Tokens for GroupMe and Discord, 
+	 * Start up scripts. Acquire Tokens for GroupMe and Discord, 
 	 * register new commands, and begin listening for Discord Commands
 	 * */
 	main() {
@@ -37,9 +37,8 @@ class Init {
 			INFO("DiscordMe Starting");
 			this.commandsHandler.register();
 			this.handleCommands();
-			INFO("DiscordMe Online")
+			INFO("DiscordMe Online");
 		});
-
 	}
 
 	/** 

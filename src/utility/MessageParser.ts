@@ -14,10 +14,10 @@ import {
 } from "../models/GroupMeAttachment";
 import GroupMeMember from "../models/GroupMeMember";
 import GroupMeMessage from "../models/GroupMeMessage";
-import GroupMeImageController from "../handlers/GroupMeImageController";
-import { ERR, WARN } from "./LogMessage";
+import { WARN } from "./LogMessage";
 import { emojiMap } from "./GroupMeEmojiMap";
 import { GroupMeMessageParseError } from "../errors";
+import GroupMeFileController from "../handlers/GroupMeFileController";
 
 /**
  * JSON message data received from GroupMe API
@@ -45,6 +45,7 @@ type GroupMeAPIAttachment = {
   lat: string;
   token: string;
   id: string;
+  file_id: string;
   reply_id: string;
   user_ids: string[];
   loci: number[][];
@@ -55,7 +56,8 @@ type GroupMeAPIAttachment = {
  */
 export async function parseGroupMeMessage(
   json: GroupMeAPIMessage,
-  imageController: GroupMeImageController
+  fileController: GroupMeFileController,
+  GROUPME_TOKEN: string
 ): Promise<GroupMeMessage> {
   const id = json.id;
   const member = new GroupMeMember(json.user_id, json.name, json.avatar_url);
@@ -82,7 +84,7 @@ export async function parseGroupMeMessage(
         const extension = extensionSearch[0];
 
         const imgName = "GroupMeImage." + extension;
-        const image = await imageController.getImage(imgUrl);
+        const image = await fileController.getFile(imgUrl);
         const imageAttachment = new GroupMeImageAttachment(imgName, image);
         attachments.push(imageAttachment);
         break;
@@ -115,9 +117,12 @@ export async function parseGroupMeMessage(
         break;
       }
       case "file": {
-        const fileId = raw.id;
-        const fileName = raw.name;
-        const file = new GroupMeFileAttachment(fileName, fileId);
+        const fileId = raw.file_id;
+        const fileURL = `https://file.groupme.com/v1/${groupID}/files/${fileId}?token=${GROUPME_TOKEN}`;
+        const fileData = await fileController.getFile(fileURL);
+        const fileName = await fileController.getFileName(fileURL);
+
+        const file = new GroupMeFileAttachment(fileURL, fileName, fileData);
         attachments.push(file);
         break;
       }
@@ -244,6 +249,12 @@ function getFiles(gmMessage: GroupMeMessage): AttachmentBuilder[] {
       return new AttachmentBuilder(img.data).setName(img.name);
     });
 
-  files.push(...images);
+    const fileAttachments = attachments
+    .filter((a) => a instanceof GroupMeFileAttachment)
+    .map((file) => {
+      return new AttachmentBuilder(file.data).setName(file.name);
+    });
+
+  files.push(...images, ...fileAttachments);
   return files;
 }

@@ -138,9 +138,22 @@ export default class GM implements Command {
     private async getWebHook(discordChannel:TextBasedChannel, message:GroupMeMessage):Promise<Webhook> {
         let webHook = await this.webHooksHandler.getWebhookByChannel(discordChannel);
 
-        if(!webHook) return await this.webHooksHandler.createWebHook(discordChannel, message);
-        else if(webHook.name === message.getMember().getName()) return webHook;
-        else return await this.webHooksHandler.editWebhook(webHook, message);
+        try {
+            const avatar = message.getMember().getAvatarURL() ? 
+            await this.gmController.getImage(message.getMember().getAvatarURL() + ".avatar")
+                : null;
+
+            if(!webHook) return await this.webHooksHandler.createWebHook(discordChannel, message, avatar);
+            else if(webHook.name === message.getMember().getName()) return webHook;
+            else return await this.webHooksHandler.editWebhook(webHook, message, avatar);
+        } catch (err) {
+            console.error(err.message);
+
+            if(!webHook) return await this.webHooksHandler.createWebHook(discordChannel, message, null);
+            else if(webHook.name === message.getMember().getName()) return webHook;
+            else return await this.webHooksHandler.editWebhook(webHook, message, null);
+        }
+        
     }
 
 

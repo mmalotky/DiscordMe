@@ -11,11 +11,11 @@ export default class WebHooksHandler {
      * @param message message to apply to
      * @returns webhook
      */
-    public async editWebhook(webHook:Webhook, message: GroupMeMessage):Promise<Webhook> {
+    public async editWebhook(webHook:Webhook, message: GroupMeMessage, avatarBuffer: Buffer | null):Promise<Webhook> {
         const name = message.getMember().getName();
-        const avatar = message.getIsSystem() ?
+        const avatar = avatarBuffer ? avatarBuffer : (message.getIsSystem() ?
             "https://cdn.groupme.com/images/og_image_poundie.png" :
-            "https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg";
+            "https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg");
         
         return webHook.edit({ name, avatar });
     }
@@ -44,15 +44,15 @@ export default class WebHooksHandler {
      * @returns null or webhook promise
      * @throws ConfigurationError
      */
-    public async createWebHook(channel:TextBasedChannel, message:GroupMeMessage):Promise<Webhook> {
+    public async createWebHook(channel:TextBasedChannel, message:GroupMeMessage, avatarBuffer: Buffer | null):Promise<Webhook> {
         if(!channel || !(channel instanceof TextChannel)) {
             throw new ConfigurationError(`Channel ${channel} not found.`);
         }
 
         const name = message.getMember().getName();
-        const avatar = message.getIsSystem() ?
+        const avatar = avatarBuffer ? avatarBuffer : (message.getIsSystem() ?
             "https://cdn.groupme.com/images/og_image_poundie.png" :
-            "https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg";
+            "https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg");
         
         return channel.createWebhook({ name, avatar });
     }

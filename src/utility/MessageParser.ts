@@ -15,9 +15,9 @@ import {
 import GroupMeMember from "../models/GroupMeMember";
 import GroupMeMessage from "../models/GroupMeMessage";
 import { WARN } from "./LogMessage";
-import { emojiMap } from "./GroupMeEmojiMap";
 import { GroupMeMessageParseError } from "../errors";
 import GroupMeFileController from "../handlers/GroupMeFileController";
+import GroupMeEmojiMeta from "../models/GroupMeEmojiMeta";
 
 /**
  * JSON message data received from GroupMe API
@@ -170,10 +170,11 @@ export async function parseGroupMeMessage(
 
 /** Convert GroupMeMessage Model into a Discord Message */
 export function parseDiscordMessage(
-  gmMessage: GroupMeMessage
+  gmMessage: GroupMeMessage,
+  gmEmojiMeta: GroupMeEmojiMeta
 ): MessageCreateOptions {
   const tag = getTag(gmMessage);
-  const content = getContent(gmMessage);
+  const content = getContent(gmMessage, gmEmojiMeta);
   const embeds = getEmbeds(gmMessage);
   const files = getFiles(gmMessage);
 
@@ -193,7 +194,7 @@ function getTag(gmMessage: GroupMeMessage) {
 }
 
 /** Utility function to add inline attachments to the GroupMe Message content body */
-function getContent(gmMessage: GroupMeMessage) {
+function getContent(gmMessage: GroupMeMessage, gmEmojiMeta: GroupMeEmojiMeta) {
   const attachments = gmMessage.getAttachments();
   const emojis = attachments.filter((a) => a instanceof GroupMeEmojiAttachment);
   let text = gmMessage.getText() ? gmMessage.getText() : "";
@@ -203,16 +204,9 @@ function getContent(gmMessage: GroupMeMessage) {
 
     for (let i = 0; i < emoji.map.length; i++) {
       const index = emoji.map[i][0];
-      if (emojiMap.length < index + 1) {
-        WARN("Emoji not yet implemented");
-        continue;
-      }
       const pick = emoji.map[i][1];
-      if (emojiMap[index].length < pick + 1) {
-        WARN("Emoji not yet implemented");
-        continue;
-      }
-      const emojiID = emojiMap[index][pick];
+
+      const emojiID = gmEmojiMeta.getEmoji(index, pick);
       text = text.replace(placeholder, emojiID);
     }
   }

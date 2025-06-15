@@ -5,6 +5,7 @@ import DataHandler from "../handlers/DataHandler.js";
 import { parseDiscordMessage } from "../utility/MessageParser.js";
 import GroupMeMessage from "../models/GroupMeMessage.js";
 import WebHooksHandler from "../handlers/WebhooksHandler.js";
+import GroupMeEmojiMeta from "../models/GroupMeEmojiMeta.js";
 
 export default class GM implements Command {
     /**
@@ -16,10 +17,12 @@ export default class GM implements Command {
 
     private gmController:GroupMeController;
     private webHooksHandler:WebHooksHandler;
+    private groupMeEmojiMeta:GroupMeEmojiMeta;
 
     constructor(controller:GroupMeController) {
         this.gmController = controller;
         this.webHooksHandler = new WebHooksHandler();
+        this.groupMeEmojiMeta = new GroupMeEmojiMeta();
     }
 
     /** 
@@ -121,7 +124,7 @@ export default class GM implements Command {
             const webHook = await this.getWebHook(discordChannel, message);
             const webHookClient = new WebhookClient({ url:webHook.url });
 
-            const payload = parseDiscordMessage(message);
+            const payload = parseDiscordMessage(message, this.groupMeEmojiMeta);
             await webHookClient.send(payload);
 
             groupMeChannel.setLastMessageID(message.getID());

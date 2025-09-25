@@ -33,18 +33,19 @@
     "eslint": "*",
     "eslint-plugin-tsdoc": "*",
     "npm-watch": "*",
-    "ts-jest":"*"
+    "ts-jest": "*"
   },
   "dependencies": {
     "@swc/core": "*",
     "@types/node": "*",
+    "cron": "*",
     "discord.js": "*",
     "dotenv": "*",
     "node": "*",
-    "tsx": "*",
+    "node-emoji": "*",
+    "quickchart-js": "*",
     "tsconfig-paths": "*",
-    "typescript": "*",
-    "cron":"*",
-    "quickchart-js": "*"
+    "tsx": "*",
+    "typescript": "*"
   }
 }

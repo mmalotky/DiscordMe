@@ -1,5 +1,6 @@
 import { GroupMeMessageParseError } from "../errors";
 import GroupMeMessageFetchError from "../errors/GroupMeMessageFetchError";
+import { emojify } from "node-emoji";
 
 export default class GroupMeEmojiMeta {
     constructor() {
@@ -16,7 +17,9 @@ export default class GroupMeEmojiMeta {
         for (const set of json.powerups) {
             const emojiSet:string[] = [];
             for(const meta of set.meta.transliterations) {
-                const emoji = this.formatEmoji(meta);
+                const emojiTranscription = this.formatEmoji(meta);
+                const emoji = emojify(emojiTranscription);
+                console.log(emoji)
                 emojiSet.push(emoji);
             }
 

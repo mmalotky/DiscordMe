@@ -122,6 +122,33 @@ export default class GM implements Command {
             const webHookClient = new WebhookClient({ url:webHook.url });
 
             const payload = parseDiscordMessage(message);
+            payload.content = payload.content? payload.content : "";
+            const contentLength = payload.content.length;
+
+            let i = 0;
+            for(let j = 1500; j < contentLength; i = j, j += 1500) {
+                const re = /(?<!^\[<t:.+>\] +)(?<!^\[<t)[:\s][^:\s]+[:\s]*$/;
+                const areaCheck = payload.content.substring(i, j);
+                const substring = areaCheck.replace(re, "");
+                j -= 1500 - substring.length;
+
+                const tag = /^\[<t:.+>\]   /;
+                const text = substring.replace(tag, "");
+
+                const subMessage = new GroupMeMessage(
+                    message.getID(), 
+                    message.getMember(),
+                    message.getGroupID(), 
+                    message.getCreatedOn(),
+                    text,
+                    [],
+                    message.getIsSystem()
+                );
+                const subPayload = parseDiscordMessage(subMessage);
+                await webHookClient.send(subPayload);
+            }
+
+            payload.content = payload.content.substring(i);
             await webHookClient.send(payload);
 
             groupMeChannel.setLastMessageID(message.getID());

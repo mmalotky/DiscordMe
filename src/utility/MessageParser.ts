@@ -204,12 +204,12 @@ function getContent(gmMessage: GroupMeMessage) {
     for (let i = 0; i < emoji.map.length; i++) {
       const index = emoji.map[i][0];
       if (emojiMap.length < index + 1) {
-        WARN("Emoji not yet implemented");
+        WARN(`Emoji not yet implemented. Index: [${index}]`);
         continue;
       }
       const pick = emoji.map[i][1];
       if (emojiMap[index].length < pick + 1) {
-        WARN("Emoji not yet implemented");
+        WARN(`Emoji not yet implemented. Index: [${index}, ${pick}]`);
         continue;
       }
       const emojiID = emojiMap[index][pick];

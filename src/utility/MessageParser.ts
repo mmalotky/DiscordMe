@@ -202,7 +202,7 @@ function getContent(gmMessage: GroupMeMessage) {
     const placeholder = emoji.content;
 
     for (let i = 0; i < emoji.map.length; i++) {
-      const index = emoji.map[i][0];
+      const index = emoji.map[i][0] - 1;
       if (emojiMap.length < index + 1) {
         WARN(`Emoji not yet implemented. Index: [${index}]`);
         continue;

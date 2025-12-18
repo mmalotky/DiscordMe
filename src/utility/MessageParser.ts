@@ -18,6 +18,7 @@ import { WARN } from "./LogMessage";
 import { emojiMap } from "./GroupMeEmojiMap";
 import { GroupMeMessageParseError } from "../errors";
 import GroupMeFileController from "../handlers/GroupMeFileController";
+import DiscordEmojiMap from "./DiscordEmojiMap";
 
 /**
  * JSON message data received from GroupMe API
@@ -216,6 +217,8 @@ function getContent(gmMessage: GroupMeMessage) {
       text = text.replace(placeholder, emojiID);
     }
   }
+  text = new DiscordEmojiMap().codeEmojis(text);
+
   return text;
 }
 

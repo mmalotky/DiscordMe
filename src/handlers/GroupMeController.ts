@@ -1,13 +1,12 @@
-import { error } from "console";
-import GroupMeChannel from "../models/GroupMeChannel";
-import { ERR } from "../utility/LogMessage";
-import GroupMeMessage from "../models/GroupMeMessage";
-import GroupMeFileController from "./GroupMeFileController";
+import GroupMeChannel from "~/models/GroupMeChannel.js";
+import { ERR } from "~/utility/LogMessage.js";
+import GroupMeMessage from "~/models/GroupMeMessage.js";
+import GroupMeFileController from "./GroupMeFileController.js";
 import {
   GroupMeAPIMessage,
   parseGroupMeMessage,
-} from "../utility/MessageParser";
-import { GroupMeMessageFetchError } from "../errors";
+} from "~/utility/MessageParser.js";
+import { GroupMeMessageFetchError, ConfigurationError } from "~/errors.js";
 
 export default class GroupMeController {
   /**
@@ -22,9 +21,11 @@ export default class GroupMeController {
 
   constructor() {
     const token = process.env["GROUPME_TOKEN"];
-    if (token) {
-      this.GROUPME_TOKEN = token;
-    } else ERR("No GroupMe token defined.");
+    if (!token) {
+      throw new ConfigurationError("token undefined");
+    }
+
+    this.GROUPME_TOKEN = token;
   }
 
   /** Set the GroupMe Access Token */
@@ -61,9 +62,11 @@ export default class GroupMeController {
       const url = `${this.GROUPME_URL}/groups?token=${this.GROUPME_TOKEN}&page=${page}`;
       const response: Response = await fetch(url);
       if (response.status !== 200)
-        throw error(`Request failed with status ${response.status}`);
+        throw new GroupMeMessageFetchError(
+          `Request failed with status ${response.status}`,
+        );
 
-      const json = await response.json();
+      const json = (await response.json()) as { response: GroupMeAPIMessage[] };
       const data: GroupMeAPIMessage[] = json.response;
       const channels = data.map((ch) => new GroupMeChannel(ch.id, ch.name));
       return channels;
@@ -106,7 +109,9 @@ export default class GroupMeController {
     if (response.status !== 200)
       throw new GroupMeMessageFetchError(`STATUS: ${response.status}`);
 
-    const json = await response.json();
+    const json = (await response.json()) as {
+      response: { messages: GroupMeAPIMessage[] };
+    };
     const raw: GroupMeAPIMessage[] = json.response.messages;
     const messages: GroupMeMessage[] = [];
 

@@ -1,6 +1,6 @@
 import { TextBasedChannel, TextChannel, Webhook } from "discord.js";
-import { ConfigurationError } from "../errors";
-import GroupMeMessage from "../models/GroupMeMessage";
+import { ConfigurationError } from "~/errors.js";
+import GroupMeMessage from "~/models/GroupMeMessage.js";
 
 export default class WebHooksHandler {
   /** Manage Discord Webhooks */
@@ -35,7 +35,7 @@ export default class WebHooksHandler {
     channel: TextBasedChannel,
   ): Promise<Webhook> {
     if (!channel || !(channel instanceof TextChannel)) {
-      throw new ConfigurationError(`Channel ${channel} not found.`);
+      throw new ConfigurationError(`Channel not found.`);
     }
     const applicationId = channel.client.application.id;
 
@@ -60,7 +60,7 @@ export default class WebHooksHandler {
     avatarBuffer: Buffer | null,
   ): Promise<Webhook> {
     if (!channel || !(channel instanceof TextChannel)) {
-      throw new ConfigurationError(`Channel ${channel} not found.`);
+      throw new ConfigurationError(`Channel not found.`);
     }
 
     const name = message.getMember().getName();

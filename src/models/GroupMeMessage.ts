@@ -1,5 +1,5 @@
-import { GroupMeAttachment } from "./GroupMeAttachment";
-import GroupMeMember from "./GroupMeMember";
+import { GroupMeAttachment } from "./GroupMeAttachment.js";
+import GroupMeMember from "./GroupMeMember.js";
 
 export default class GroupMeMessage {
   /**

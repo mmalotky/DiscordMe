@@ -30,15 +30,19 @@ class Init {
    * */
   main() {
     dotenv.config();
-    this.client.login(process.env.DISCORD_TOKEN);
-    this.groupMeController.setToken(process.env.GROUPME_TOKEN);
+    this.client
+      .login(process.env.DISCORD_TOKEN)
+      .then(() => {
+        this.groupMeController.setToken(process.env.GROUPME_TOKEN);
 
-    this.client.once(Events.ClientReady, () => {
-      INFO("DiscordMe Starting");
-      this.commandsHandler.register();
-      this.handleCommands();
-      INFO("DiscordMe Online");
-    });
+        this.client.once(Events.ClientReady, () => {
+          INFO("DiscordMe Starting");
+          this.commandsHandler.register();
+          this.handleCommands();
+          INFO("DiscordMe Online");
+        });
+      })
+      .catch(() => {});
   }
 
   /**
@@ -47,7 +51,7 @@ class Init {
    * Discord if the operation fails.
    */
   private handleCommands() {
-    this.client.on(Events.InteractionCreate, async (interaction) => {
+    this.client.on(Events.InteractionCreate, (interaction) => {
       if (!interaction.isChatInputCommand()) return;
       const command = this.commandsHandler
         .getCommands()
@@ -58,22 +62,29 @@ class Init {
         return;
       }
 
-      try {
-        await command.execute(interaction);
-      } catch (error) {
-        ERR(error);
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({
-            content: "There was an error while executing this command!",
-            ephemeral: true,
-          });
-        } else {
-          await interaction.reply({
-            content: "There was an error while executing this command!",
-            ephemeral: true,
-          });
-        }
-      }
+      command
+        .execute(interaction)
+        .then(() => {})
+        .catch((error) => {
+          ERR(error);
+          if (interaction.replied || interaction.deferred) {
+            interaction
+              .followUp({
+                content: "There was an error while executing this command!",
+                ephemeral: true,
+              })
+              .then(() => {})
+              .catch(() => {});
+          } else {
+            interaction
+              .reply({
+                content: "There was an error while executing this command!",
+                ephemeral: true,
+              })
+              .then(() => {})
+              .catch(() => {});
+          }
+        });
     });
   }
 }

@@ -1,7 +1,7 @@
 import fs from "fs";
 import { readdir, readFile, rm } from "fs/promises";
-import GroupMeChannel from "../models/GroupMeChannel";
-import { WARN } from "../utility/LogMessage";
+import GroupMeChannel from "~/models/GroupMeChannel.js";
+import { WARN } from "~/utility/LogMessage.js";
 
 export default class DataHandler {
   /** Handles persistent data storage */
@@ -82,7 +82,11 @@ export default class DataHandler {
       const path = await this.checkConfig(discordID);
       if (!path) return;
       const data = await readFile(path, { encoding: "utf-8" });
-      const json = JSON.parse(data);
+      const json = JSON.parse(data) as {
+        id: string;
+        name: string;
+        lastMessageID: string;
+      };
       const channel = new GroupMeChannel(json.id, json.name);
       channel.setLastMessageID(json.lastMessageID);
       return channel;

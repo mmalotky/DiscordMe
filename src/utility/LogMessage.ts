@@ -1,7 +1,8 @@
 /** Console Logging Utility functions */
 
 export function ERR(message: unknown) {
-  console.error(`[ERR] ${message}`);
+  const m = message as string;
+  console.error(`[ERR] ${m}`);
 }
 
 export function INFO(message: string) {
@@ -9,5 +10,6 @@ export function INFO(message: string) {
 }
 
 export function WARN(message: unknown) {
-  console.warn(`[WARN] ${message}`);
+  const m = message as string;
+  console.warn(`[WARN] ${m}`);
 }

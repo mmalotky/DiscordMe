@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 import { Client, IntentsBitField, Events } from "discord.js";
-import CommandsHandler from "./handlers/CommandsHandler.js";
+import * as CommandsHandler from "./handlers/CommandsHandler.js";
 import GroupMeController from "./handlers/GroupMeController.js";
 import { ERR, INFO } from "./utility/LogMessage.js";
 
@@ -21,8 +21,6 @@ class Init {
 
   /** Initiate GroupMe Controller */
   private groupMeController = new GroupMeController();
-  /** Initiate Discord Commands */
-  private commandsHandler = new CommandsHandler(this.groupMeController);
 
   /**
    * Start up scripts. Acquire Tokens for GroupMe and Discord,
@@ -37,7 +35,8 @@ class Init {
 
         this.client.once(Events.ClientReady, () => {
           INFO("DiscordMe Starting");
-          this.commandsHandler.register();
+          CommandsHandler.init(this.groupMeController);
+          CommandsHandler.register();
           this.handleCommands();
           INFO("DiscordMe Online");
         });
@@ -53,9 +52,9 @@ class Init {
   private handleCommands() {
     this.client.on(Events.InteractionCreate, (interaction) => {
       if (!interaction.isChatInputCommand()) return;
-      const command = this.commandsHandler
-        .getCommands()
-        .filter((c) => c.getData().name === interaction.commandName)[0];
+      const command = CommandsHandler.get().filter(
+        (c) => c.getData().name === interaction.commandName,
+      )[0];
 
       if (!command) {
         ERR(`No command matching ${interaction.commandName} was found.`);

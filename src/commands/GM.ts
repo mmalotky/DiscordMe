@@ -6,11 +6,11 @@ import {
   WebhookClient,
 } from "discord.js";
 import Command from "./Command.js";
-import GroupMeController from "../handlers/GroupMeController.js";
-import DataHandler from "../handlers/DataHandler.js";
-import { parseDiscordMessage } from "../utility/MessageParser.js";
-import GroupMeMessage from "../models/GroupMeMessage.js";
-import WebHooksHandler from "../handlers/WebhooksHandler.js";
+import GroupMeController from "~/handlers/GroupMeController.js";
+import DataHandler from "~/handlers/DataHandler.js";
+import { parseDiscordMessage } from "~/utility/MessageParser.js";
+import GroupMeMessage from "~/models/GroupMeMessage.js";
+import WebHooksHandler from "~/handlers/WebhooksHandler.js";
 
 export default class GM implements Command {
   /**

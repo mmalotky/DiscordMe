@@ -4,7 +4,7 @@ import {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
   Routes,
 } from "discord.js";
-import Command from "../commands/Command.js";
+import Command from "~/commands/Command.js";
 import GM from "~/commands/GM.js";
 import GroupMeController from "./GroupMeController.js";
 

@@ -1,27 +1,27 @@
 export default class GroupMeMember {
-    /**
-     * GroupMe member model
-     */
+  /**
+   * GroupMe member model
+   */
 
-    private id:string;
-    private name:string;
-    private avatarURL:string;
-    
-    constructor(id:string, name:string, avatarURL:string) {
-        this.id = id;
-        this.name = name;
-        this.avatarURL = avatarURL;
-    }
+  private id: string;
+  private name: string;
+  private avatarURL: string;
 
-    getID() {
-        return this.id;
-    }
+  constructor(id: string, name: string, avatarURL: string) {
+    this.id = id;
+    this.name = name;
+    this.avatarURL = avatarURL;
+  }
 
-    getName() {
-        return this.name;
-    }
+  getID() {
+    return this.id;
+  }
 
-    getAvatarURL() {
-        return this.avatarURL;
-    }
+  getName() {
+    return this.name;
+  }
+
+  getAvatarURL() {
+    return this.avatarURL;
+  }
 }

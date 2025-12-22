@@ -18,6 +18,7 @@ import { WARN } from "./LogMessage";
 import { emojiMap } from "./GroupMeEmojiMap";
 import { GroupMeMessageParseError } from "../errors";
 import GroupMeFileController from "../handlers/GroupMeFileController";
+import DiscordEmojiMap from "./DiscordEmojiMap";
 
 /**
  * JSON message data received from GroupMe API
@@ -292,7 +293,7 @@ function getContent(gmMessage: GroupMeMessage) {
     const placeholder = emoji.content;
 
     for (let i = 0; i < emoji.map.length; i++) {
-      const index = emoji.map[i][0];
+      const index = emoji.map[i][0] - 1;
       if (emojiMap.length < index + 1) {
         WARN(`Emoji not yet implemented. Index: [${index}]`);
         continue;
@@ -306,6 +307,8 @@ function getContent(gmMessage: GroupMeMessage) {
       text = text.replace(placeholder, emojiID);
     }
   }
+  text = new DiscordEmojiMap().codeEmojis(text);
+
   return text;
 }
 

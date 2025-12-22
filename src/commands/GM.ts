@@ -5,6 +5,7 @@ import DataHandler from "../handlers/DataHandler.js";
 import { parseDiscordMessage } from "../utility/MessageParser.js";
 import GroupMeMessage from "../models/GroupMeMessage.js";
 import WebHooksHandler from "../handlers/WebhooksHandler.js";
+import { log } from "console";
 
 export default class GM implements Command {
     /**
@@ -124,13 +125,17 @@ export default class GM implements Command {
             const payload = parseDiscordMessage(message);
             payload.content = payload.content? payload.content : "";
             const contentLength = payload.content.length;
-
-            let i = 0;
-            for(let j = 1500; j < contentLength; i = j, j += 1500) {
-                const re = /(?<!^\[<t:.+>\] +)(?<!^\[<t)[:\s][^:\s]+[:\s]*$/;
+            
+            let i = 0
+            for(let j = 1500; j < contentLength; i = j, j += 1500 ) {
+                /*
+                Check for appropriate breaking points such as whitespace and characters outside of
+                codes delimited with colons. Exclude the opening tag.
+                */
                 const areaCheck = payload.content.substring(i, j);
+                const re = /(?<!^\[<t:.+>\] +)(?<!^\[<t)[:\s][^:\s]+[:\s]*$/;
                 const substring = areaCheck.replace(re, "");
-                j -= 1500 - substring.length;
+                j += (substring.length - areaCheck.length);
 
                 const tag = /^\[<t:.+>\]   /;
                 const text = substring.replace(tag, "");
@@ -147,8 +152,8 @@ export default class GM implements Command {
                 const subPayload = parseDiscordMessage(subMessage);
                 await webHookClient.send(subPayload);
             }
-
-            payload.content = payload.content.substring(i);
+            const finalMessage = payload.content.substring(i);
+            payload.content = finalMessage;
             await webHookClient.send(payload);
 
             groupMeChannel.setLastMessageID(message.getID());

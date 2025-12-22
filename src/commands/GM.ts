@@ -11,14 +11,13 @@ import DataHandler from "../handlers/DataHandler.js";
 import { parseDiscordMessage } from "../utility/MessageParser.js";
 import GroupMeMessage from "../models/GroupMeMessage.js";
 import WebHooksHandler from "../handlers/WebhooksHandler.js";
-import { log } from "console";
 
 export default class GM implements Command {
   /**
    * GM Command class. Allows bot configuration within discord servers
    * and pulling GroupMe chat history into the configured Channel.
    *
-   * @param GroupMeController
+   * @param GroupMeController -
    */
 
   private gmController: GroupMeController;
@@ -110,7 +109,7 @@ export default class GM implements Command {
    * Pulls data from GroupMe and adds sends any new messages to the discord client.
    * Updates the latest message ID for each message sent.
    * Creates Webhooks to emulate different GroupMe Users
-   * @param interaction
+   * @param interaction -
    * */
   private async update(interaction: ChatInputCommandInteraction) {
     const groupMeChannel = await DataHandler.getConfig(interaction.channelId);
@@ -150,7 +149,7 @@ export default class GM implements Command {
         const substring = areaCheck.replace(re, "");
         j += substring.length - areaCheck.length;
 
-        const tag = /^\[<t:.+>\]   /;
+        const tag = /^\[<t:.+>\]\s{3}/;
         const text = substring.replace(tag, "");
 
         const subMessage = new GroupMeMessage(
@@ -176,15 +175,15 @@ export default class GM implements Command {
 
   /**
    * Find or create a webhook for a GroupMe message
-   * @param discordChannel discord channel for the webhook
-   * @param message GroupMeMessage using the Webhook
+   * @param discordChannel - discord channel for the webhook
+   * @param message - GroupMeMessage using the Webhook
    * @returns Promise<Webhook>
    */
   private async getWebHook(
     discordChannel: TextBasedChannel,
     message: GroupMeMessage,
   ): Promise<Webhook> {
-    let webHook =
+    const webHook =
       await this.webHooksHandler.getWebhookByChannel(discordChannel);
 
     try {
@@ -204,7 +203,7 @@ export default class GM implements Command {
       else
         return await this.webHooksHandler.editWebhook(webHook, message, avatar);
     } catch (err) {
-      console.error(err.message);
+      console.error(err);
 
       if (!webHook)
         return await this.webHooksHandler.createWebHook(
@@ -224,7 +223,7 @@ export default class GM implements Command {
    * channel when the update command is run. Stores the preferences
    * permanent data. Does not update a Discord Channel with an existing
    * configuration (see setConfig).
-   * @param interaction
+   * @param interaction -
    * */
   private async config(interaction: ChatInputCommandInteraction) {
     const channel = await this.getChannel(interaction);
@@ -249,7 +248,7 @@ export default class GM implements Command {
   /**
    * SetConfig Subcommand.
    * Updates an existing configuration for a discord channel.
-   * @param interaction
+   * @param interaction -
    */
   private async setConfig(interaction: ChatInputCommandInteraction) {
     const channel = await this.getChannel(interaction);
@@ -274,7 +273,7 @@ export default class GM implements Command {
   /**
    * GetConfig Subcommand
    * Sends the current GroupMe Channel configured to a Discord Channel
-   * @param interaction
+   * @param interaction -
    */
   private async getConfig(interaction: ChatInputCommandInteraction) {
     const channel = await DataHandler.getConfig(interaction.channelId);
@@ -296,9 +295,9 @@ export default class GM implements Command {
    * A utility function for pulling GroupMe Channels available for configuration
    * and comparing to a string parameter in the Discord interaction.
    *
-   * @TODO Discuss Security and Privacy Implications!
+   * @remarks - TODO: Discuss Security and Privacy Implications!
    *
-   * @param interaction
+   * @param interaction -
    * @returns List of available channel names
    */
   private async getChannel(interaction: ChatInputCommandInteraction) {

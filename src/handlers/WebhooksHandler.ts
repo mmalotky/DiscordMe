@@ -7,8 +7,8 @@ export default class WebHooksHandler {
 
   /**
    * Edits an existing webhook according to a GroupMe message
-   * @param webHook webhook to edit
-   * @param message message to apply to
+   * @param webHook - webhook to edit
+   * @param message - message to apply to
    * @returns webhook
    */
   public async editWebhook(
@@ -28,7 +28,7 @@ export default class WebHooksHandler {
 
   /**
    * Finds the webhook in a channel associated with the application id
-   * @param channel Discord Channel
+   * @param channel - Discord Channel
    * @returns Webhook attached to the application id
    */
   public async getWebhookByChannel(
@@ -48,9 +48,9 @@ export default class WebHooksHandler {
 
   /**
    * Creates a new webhook for a discord channel
-   * @param channel Discord Channel
-   * @param name Webhook name
-   * @param avatar Webhook Avatar URL
+   * @param channel - Discord Channel
+   * @param name - Webhook name
+   * @param avatar - Webhook Avatar URL
    * @returns null or webhook promise
    * @throws ConfigurationError
    */

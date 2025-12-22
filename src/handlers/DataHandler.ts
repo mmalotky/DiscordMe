@@ -12,8 +12,8 @@ export default class DataHandler {
    * file labeled put under a folder for the DiscordID, named by the GroupMe Channel
    * ID. Does not update existing configurations.
    *
-   * @param discordID Discord channel ID
-   * @param groupMeChannel GroupMe Channel Model
+   * @param discordID - Discord channel ID
+   * @param groupMeChannel - GroupMe Channel Model
    */
   public static async addConfig(
     discordID: string,
@@ -29,7 +29,7 @@ export default class DataHandler {
     fs.mkdirSync(folderPath, { recursive: true });
 
     const json = JSON.stringify(groupMeChannel);
-    fs.writeFile(path, json, (err) => this.handleIOErr(err));
+    fs.writeFile(path, json, (err) => WARN(err));
 
     return true;
   }
@@ -37,8 +37,8 @@ export default class DataHandler {
   /**
    * Updates an existing configuration data between a groupMe and Discord Channel
    *
-   * @param discordID Discord Channel ID
-   * @param groupMeChannel GroupMe Channel Model
+   * @param discordID - Discord Channel ID
+   * @param groupMeChannel - GroupMe Channel Model
    */
   public static async setConfig(
     discordID: string,
@@ -50,14 +50,14 @@ export default class DataHandler {
     }
     const path = this.getFilePath(discordID, groupMeChannel.getID());
     const json = JSON.stringify(groupMeChannel);
-    fs.writeFile(path, json, (err) => this.handleIOErr(err));
+    fs.writeFile(path, json, (err) => WARN(err));
     return true;
   }
 
   /**
    * Removes an existing configuration for a Discord Channel
    *
-   * @param discordID Discord Channel ID
+   * @param discordID - Discord Channel ID
    */
   public static async rmConfig(discordID: string) {
     try {
@@ -66,7 +66,7 @@ export default class DataHandler {
       await rm(path);
       return true;
     } catch (err) {
-      this.handleIOErr(err);
+      WARN(err);
       return false;
     }
   }
@@ -74,7 +74,7 @@ export default class DataHandler {
   /**
    * Gets the GroupMe Channel configured to a Discord Channel
    *
-   * @param discordID Discord channel ID
+   * @param discordID - Discord channel ID
    * @returns null or GroupMe Channel Model
    */
   public static async getConfig(discordID: string) {
@@ -87,7 +87,7 @@ export default class DataHandler {
       channel.setLastMessageID(json.lastMessageID);
       return channel;
     } catch (err) {
-      this.handleIOErr(err);
+      WARN(err);
     }
   }
 
@@ -98,20 +98,12 @@ export default class DataHandler {
       const dir = await readdir(folderPath);
       return dir[0] ? `${folderPath}/${dir[0]}` : undefined;
     } catch (err) {
-      this.handleIOErr(err);
+      WARN(err);
     }
   }
 
   /** Utility function to get the filepath format for a given Discord ID and GroupMe ID */
   private static getFilePath(discordID: string, groupmeID: string) {
     return `${this.DATA_PATH}/${discordID.substring(0, 2)}/${discordID.substring(2)}/${groupmeID}.json`;
-  }
-
-  /** Utility function to send IO error messages */
-  private static handleIOErr(err: NodeJS.ErrnoException | null) {
-    if (err) {
-      WARN(err.message);
-      return false;
-    } else return true;
   }
 }

@@ -20,6 +20,13 @@ export default class GroupMeController {
 
   private fileController = new GroupMeFileController();
 
+  constructor() {
+    const token = process.env["GROUPME_TOKEN"];
+    if (token) {
+      this.GROUPME_TOKEN = token;
+    } else ERR("No GroupMe token defined.");
+  }
+
   /** Set the GroupMe Access Token */
   public setToken(token?: string) {
     if (token) {
@@ -104,13 +111,7 @@ export default class GroupMeController {
     const messages: GroupMeMessage[] = [];
 
     for (const data of raw) {
-      messages.push(
-        await parseGroupMeMessage(
-          data,
-          this.fileController,
-          this.GROUPME_TOKEN,
-        ),
-      );
+      messages.push(await parseGroupMeMessage(data, this.fileController));
     }
     return messages;
   }

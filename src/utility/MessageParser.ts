@@ -58,9 +58,8 @@ type GroupMeAPIAttachment = {
 export async function parseGroupMeMessage(
   json: GroupMeAPIMessage,
   fileController: GroupMeFileController,
-  GROUPME_TOKEN: string
+  GROUPME_TOKEN: string,
 ): Promise<GroupMeMessage> {
-
   return new GroupMeMessage(
     json.id,
     new GroupMeMember(json.user_id, json.name, json.avatar_url),
@@ -68,14 +67,15 @@ export async function parseGroupMeMessage(
     new Date(json.created_at * 1000),
     json.text,
     await parseAttachments(json.attachments, fileController),
-    json.system
+    json.system,
   );
 }
 
-async function parseAttachments(rawAttachments: GroupMeAPIAttachment[], fileC: GroupMeFileController): Promise<GroupMeAttachment[]> {
-
+async function parseAttachments(
+  rawAttachments: GroupMeAPIAttachment[],
+  fileC: GroupMeFileController,
+): Promise<GroupMeAttachment[]> {
   const attachments: GroupMeAttachment[] = [];
-
 
   for (const raw of rawAttachments) {
     switch (raw.type) {
@@ -134,14 +134,17 @@ async function parseAttachments(rawAttachments: GroupMeAPIAttachment[], fileC: G
  *
  * @Throws GroupMeMessageParseError
  */
-async function parseImageAttachment(raw: GroupMeAPIAttachment, fileC: GroupMeFileController): Promise<GroupMeAttachment> {
+async function parseImageAttachment(
+  raw: GroupMeAPIAttachment,
+  fileC: GroupMeFileController,
+): Promise<GroupMeAttachment> {
   const imgUrl = raw.url;
   const re: RegExp = /\w+(?=\.\w{32}$)/;
 
   const extensionSearch = re.exec(imgUrl);
   if (!extensionSearch) {
     throw new GroupMeMessageParseError(
-      `Failed to parse image type from ${imgUrl}`
+      `Failed to parse image type from ${imgUrl}`,
     );
   }
   const extension = extensionSearch[0];
@@ -205,7 +208,10 @@ function parseVideoAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
  *
  * @throws GroupMeMessageParseError
  */
-async function parseFileAttachment(raw: GroupMeAPIAttachment, fileC: GroupMeFileController): Promise<GroupMeAttachment> {
+async function parseFileAttachment(
+  raw: GroupMeAPIAttachment,
+  fileC: GroupMeFileController,
+): Promise<GroupMeAttachment> {
   const fileId = raw.file_id;
   const fileURL = `https://file.groupme.com/v1/${groupID}/files/${fileId}?token=${GROUPME_TOKEN}`;
   const fileData = await fileC.getFile(fileURL);
@@ -261,7 +267,7 @@ function parseEventAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
 
 /** Convert GroupMeMessage Model into a Discord Message */
 export function parseDiscordMessage(
-  gmMessage: GroupMeMessage
+  gmMessage: GroupMeMessage,
 ): MessageCreateOptions {
   const tag = getTag(gmMessage);
   const content = getContent(gmMessage);
@@ -342,7 +348,7 @@ function getFiles(gmMessage: GroupMeMessage): AttachmentBuilder[] {
       return new AttachmentBuilder(img.data).setName(img.name);
     });
 
-    const fileAttachments = attachments
+  const fileAttachments = attachments
     .filter((a) => a instanceof GroupMeFileAttachment)
     .map((file) => {
       return new AttachmentBuilder(file.data).setName(file.name);

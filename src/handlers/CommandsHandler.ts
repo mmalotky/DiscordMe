@@ -51,9 +51,9 @@ export default class CommandsHandler {
         this.rest.put(
           Routes.applicationGuildCommands(
             process.env.CLIENT_ID,
-            process.env.SERVER_ID
+            process.env.SERVER_ID,
           ),
-          { body: this.commandsJSON }
+          { body: this.commandsJSON },
         );
 
         console.log("[INFO]...Commands Registered");

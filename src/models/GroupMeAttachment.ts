@@ -1,4 +1,3 @@
-
 /** Class Definitions for GroupMe Attachments */
 
 export class GroupMeAttachment {

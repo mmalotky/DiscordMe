@@ -1,15 +1,15 @@
 # Configure TypeScript Linting
 
 root: true
-parser: '@typescript-eslint/parser'
+parser: "@typescript-eslint/parser"
 parserOptions:
   ecmaVersion: latest
 plugins:
-  - '@typescript-eslint'
-  - 'eslint-plugin-tsdoc'
+  - "@typescript-eslint"
+  - "eslint-plugin-tsdoc"
 extends:
-  - 'eslint:recommended'
-  - 'plugin:@typescript-eslint/recommended'
+  - "eslint:recommended"
+  - "plugin:@typescript-eslint/recommended"
 rules:
   tsdoc/syntax:
     - error

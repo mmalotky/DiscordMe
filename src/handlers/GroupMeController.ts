@@ -91,7 +91,7 @@ export default class GroupMeController {
    */
   private async getMessagesAfterID(
     channelID: string,
-    lastID: string
+    lastID: string,
   ): Promise<GroupMeMessage[]> {
     const url = `${this.GROUPME_URL}/groups/${channelID}/messages?token=${this.GROUPME_TOKEN}&after_id=${lastID}`;
 
@@ -104,7 +104,13 @@ export default class GroupMeController {
     const messages: GroupMeMessage[] = [];
 
     for (const data of raw) {
-      messages.push(await parseGroupMeMessage(data, this.fileController, this.GROUPME_TOKEN));
+      messages.push(
+        await parseGroupMeMessage(
+          data,
+          this.fileController,
+          this.GROUPME_TOKEN,
+        ),
+      );
     }
     return messages;
   }

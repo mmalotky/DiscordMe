@@ -59,96 +59,63 @@ export async function parseGroupMeMessage(
   fileController: GroupMeFileController,
   GROUPME_TOKEN: string
 ): Promise<GroupMeMessage> {
-  const id = json.id;
-  const member = new GroupMeMember(json.user_id, json.name, json.avatar_url);
-  const groupID = json.group_id;
-  const createdOn = new Date(json.created_at * 1000);
-  const text = json.text;
-  const isSystem = json.system;
+
+  return new GroupMeMessage(
+    json.id,
+    new GroupMeMember(json.user_id, json.name, json.avatar_url),
+    json.group_id,
+    new Date(json.created_at * 1000),
+    json.text,
+    await parseAttachments(json.attachments, fileController),
+    json.system
+  );
+}
+
+async function parseAttachments(rawAttachments: GroupMeAPIAttachment[], fileC: GroupMeFileController): Promise<GroupMeAttachment[]> {
 
   const attachments: GroupMeAttachment[] = [];
-  const rawAttachments = json.attachments;
+
+
   for (const raw of rawAttachments) {
     switch (raw.type) {
       case "image": {
-        const imgUrl = raw.url;
-        const re: RegExp = /\w+(?=\.\w{32}$)/;
-
-        const extensionSearch = re.exec(imgUrl);
-        if (!extensionSearch) {
-          throw new GroupMeMessageParseError(
-            `Failed to parse image type from ${imgUrl}`
-          );
-          break;
-        }
-        const extension = extensionSearch[0];
-
-        const imgName = "GroupMeImage." + extension;
-        const image = await fileController.getFile(imgUrl);
-        const imageAttachment = new GroupMeImageAttachment(imgName, image);
-        attachments.push(imageAttachment);
+        attachments.push(await parseImageAttachment(raw, fileC));
         break;
       }
       case "emoji": {
-        const placeholder = raw.placeholder;
-        const charmap = raw.charmap;
-        const emoji = new GroupMeEmojiAttachment(placeholder, charmap);
-        attachments.push(emoji);
+        attachments.push(parseEmojiAttachment(raw));
         break;
       }
       case "location": {
-        const name = raw.name;
-        const lat = raw.lat;
-        const lng = raw.lng;
-        const location = new GroupMeLocationAttachment(name, lat, lng);
-        attachments.push(location);
+        attachments.push(parseLocationAttachment(raw));
         break;
       }
       case "split": {
-        const token = raw.token;
-        const split = new GroupMeSplitAttachment(token);
-        attachments.push(split);
+        attachments.push(parseSplitAttachment(raw));
         break;
       }
       case "video": {
-        const vidUrl = raw.url;
-        const video = new GroupMeVideoAttachment(vidUrl);
-        attachments.push(video);
+        attachments.push(parseVideoAttachment(raw));
         break;
       }
       case "file": {
-        const fileId = raw.file_id;
-        const fileURL = `https://file.groupme.com/v1/${groupID}/files/${fileId}?token=${GROUPME_TOKEN}`;
-        const fileData = await fileController.getFile(fileURL);
-        const fileName = await fileController.getFileName(fileURL);
-
-        const file = new GroupMeFileAttachment(fileURL, fileName, fileData);
-        attachments.push(file);
+        attachments.push(await parseFileAttachment(raw, fileC));
         break;
       }
       case "reply": {
-        const replyID = raw.reply_id;
-        const reply = new GroupMeReplyAttachment(replyID);
-        attachments.push(reply);
+        attachments.push(parseReplyAttachment(raw));
         break;
       }
       case "mentions": {
-        const userIDs = raw.user_ids;
-        const loci = raw.loci;
-        const mentions = new GroupMeMentionsAttachment(userIDs, loci);
-        attachments.push(mentions);
+        attachments.push(parseMentionsAttachment(raw));
         break;
       }
       case "poll": {
-        const pollID = raw.id;
-        const poll = new GroupMePollAttachment(pollID);
-        attachments.push(poll);
+        attachments.push(parsePollAttachment(raw));
         break;
       }
       case "event": {
-        const eventID = raw.id;
-        const event = new GroupMeEventAttachment(eventID);
-        attachments.push(event);
+        attachments.push(parseEventAttachment(raw));
         break;
       }
       default: {
@@ -157,15 +124,138 @@ export async function parseGroupMeMessage(
     }
   }
 
-  return new GroupMeMessage(
-    id,
-    member,
-    groupID,
-    createdOn,
-    text,
-    attachments,
-    isSystem
-  );
+  return attachments;
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @Throws GroupMeMessageParseError
+ */
+async function parseImageAttachment(raw: GroupMeAPIAttachment, fileC: GroupMeFileController): Promise<GroupMeAttachment> {
+  const imgUrl = raw.url;
+  const re: RegExp = /\w+(?=\.\w{32}$)/;
+
+  const extensionSearch = re.exec(imgUrl);
+  if (!extensionSearch) {
+    throw new GroupMeMessageParseError(
+      `Failed to parse image type from ${imgUrl}`
+    );
+  }
+  const extension = extensionSearch[0];
+
+  const imgName = "GroupMeImage." + extension;
+  const image = await fileC.getFile(imgUrl);
+
+  return new GroupMeImageAttachment(imgName, image);
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @throws GroupMeMessageParseError
+ */
+function parseEmojiAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
+  const placeholder = raw.placeholder;
+  const charmap = raw.charmap;
+  return new GroupMeEmojiAttachment(placeholder, charmap);
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @throws GroupMeMessageParseError
+ */
+function parseLocationAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
+  const name = raw.name;
+  const lat = raw.lat;
+  const lng = raw.lng;
+  return new GroupMeLocationAttachment(name, lat, lng);
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @throws GroupMeMessageParseError
+ */
+function parseSplitAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
+  const token = raw.token;
+  return new GroupMeSplitAttachment(token);
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @throws GroupMeMessageParseError
+ */
+function parseVideoAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
+  const vidUrl = raw.url;
+  return new GroupMeVideoAttachment(vidUrl);
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @throws GroupMeMessageParseError
+ */
+async function parseFileAttachment(raw: GroupMeAPIAttachment, fileC: GroupMeFileController): Promise<GroupMeAttachment> {
+  const fileId = raw.file_id;
+  const fileURL = `https://file.groupme.com/v1/${groupID}/files/${fileId}?token=${GROUPME_TOKEN}`;
+  const fileData = await fileC.getFile(fileURL);
+  const fileName = await fileC.getFileName(fileURL);
+
+  return new GroupMeFileAttachment(fileURL, fileName, fileData);
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @throws GroupMeMessageParseError
+ */
+function parseReplyAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
+  const replyID = raw.reply_id;
+  return new GroupMeReplyAttachment(replyID);
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @throws GroupMeMessageParseError
+ */
+function parseMentionsAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
+  const userIDs = raw.user_ids;
+  const loci = raw.loci;
+  return new GroupMeMentionsAttachment(userIDs, loci);
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @throws GroupMeMessageParseError
+ */
+function parsePollAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
+  const pollID = raw.id;
+  return new GroupMePollAttachment(pollID);
+}
+
+/**
+ *
+ * @param raw -
+ *
+ * @throws GroupMeMessageParseError
+ */
+function parseEventAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
+  const eventID = raw.id;
+  return new GroupMeEventAttachment(eventID);
 }
 
 /** Convert GroupMeMessage Model into a Discord Message */

@@ -1,4 +1,5 @@
 import { APIEmbed, AttachmentBuilder, MessageCreateOptions } from "discord.js";
+
 import {
   GroupMeAttachment,
   GroupMeEmojiAttachment,
@@ -11,14 +12,14 @@ import {
   GroupMeReplyAttachment,
   GroupMeSplitAttachment,
   GroupMeVideoAttachment,
-} from "../models/GroupMeAttachment";
-import GroupMeMember from "../models/GroupMeMember";
-import GroupMeMessage from "../models/GroupMeMessage";
-import { WARN } from "./LogMessage";
-import { emojiMap } from "./GroupMeEmojiMap";
-import { GroupMeMessageParseError } from "../errors";
-import GroupMeFileController from "../handlers/GroupMeFileController";
-import DiscordEmojiMap from "./DiscordEmojiMap";
+} from "~/models/GroupMeAttachment.js";
+import GroupMeMember from "~/models/GroupMeMember.js";
+import GroupMeMessage from "~/models/GroupMeMessage.js";
+import { WARN } from "./LogMessage.js";
+import { emojiMap } from "./GroupMeEmojiMap.js";
+import { GroupMeMessageParseError } from "~/errors.js";
+import GroupMeFileController from "~/handlers/GroupMeFileController.js";
+import DiscordEmojiMap from "./DiscordEmojiMap.js";
 
 /**
  * JSON message data received from GroupMe API

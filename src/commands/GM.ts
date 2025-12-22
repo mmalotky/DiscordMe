@@ -81,23 +81,23 @@ export default class GM implements Command {
     const subcommand = interaction.options.getSubcommand();
     switch (subcommand) {
       case "config":
-        this.config(interaction);
+        await this.config(interaction);
         break;
 
       case "setconfig":
-        this.setConfig(interaction);
+        await this.setConfig(interaction);
         break;
 
       case "getconfig":
-        this.getConfig(interaction);
+        await this.getConfig(interaction);
         break;
 
       case "update":
-        this.update(interaction);
+        await this.update(interaction);
         break;
 
       default:
-        interaction.reply({
+        await interaction.reply({
           content: `Subcommand "${subcommand}" not recognised.`,
           ephemeral: true,
         });
@@ -118,16 +118,16 @@ export default class GM implements Command {
     const messages = await this.gmController.getMessages(groupMeChannel);
 
     if (messages.length === 0) {
-      interaction.reply({
+      await interaction.reply({
         content: "No new messages",
         ephemeral: true,
       });
     } else {
-      interaction.reply({
+      await interaction.reply({
         content: "Success",
         ephemeral: true,
       });
-      interaction.deleteReply();
+      await interaction.deleteReply();
     }
 
     for (const message of messages) {
@@ -169,7 +169,7 @@ export default class GM implements Command {
       await webHookClient.send(payload);
 
       groupMeChannel.setLastMessageID(message.getID());
-      DataHandler.setConfig(interaction.channelId, groupMeChannel);
+      await DataHandler.setConfig(interaction.channelId, groupMeChannel);
     }
   }
 
@@ -232,12 +232,12 @@ export default class GM implements Command {
     const success = await DataHandler.addConfig(interaction.channelId, channel);
 
     if (success) {
-      interaction.reply({
+      await interaction.reply({
         content: `Configured to channel ${channel.getName()}`,
         ephemeral: true,
       });
     } else {
-      interaction.reply({
+      await interaction.reply({
         content:
           "This Discord channel already has another GroupMe channel assigned",
         ephemeral: true,
@@ -258,12 +258,12 @@ export default class GM implements Command {
     const add = await DataHandler.addConfig(interaction.channelId, channel);
 
     if (rm && add) {
-      interaction.reply({
+      await interaction.reply({
         content: `Configured to channel ${channel.getName()}`,
         ephemeral: true,
       });
     } else {
-      interaction.reply({
+      await interaction.reply({
         content: "No config found for this Discord Channel",
         ephemeral: true,
       });
@@ -279,12 +279,12 @@ export default class GM implements Command {
     const channel = await DataHandler.getConfig(interaction.channelId);
 
     if (channel) {
-      interaction.reply({
+      await interaction.reply({
         content: `Current configuration: \n${JSON.stringify(channel)}`,
         ephemeral: true,
       });
     } else {
-      interaction.reply({
+      await interaction.reply({
         content: "This channel is not yet configured.",
         ephemeral: true,
       });
@@ -305,13 +305,13 @@ export default class GM implements Command {
     const response = await this.gmController.getChannelByName(channelName);
 
     if (response.length === 0) {
-      interaction.reply({
+      await interaction.reply({
         content: `No channel found by the name ${channelName}`,
         ephemeral: true,
       });
       return false;
     } else if (response.length > 1) {
-      interaction.reply({
+      await interaction.reply({
         content: "Multiple channels were found. Please select one.",
         ephemeral: true,
       });

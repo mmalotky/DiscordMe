@@ -41,14 +41,17 @@
   },
   "dependencies": {
     "@swc/core": "*",
+    "@tsconfig/node-lts": "*",
     "@types/node": "*",
     "cron": "*",
     "discord.js": "*",
     "dotenv": "*",
+    "jiti": "*",
     "node": "*",
     "quickchart-js": "*",
     "tsconfig-paths": "*",
     "tsx": "*",
-    "typescript": "*"
+    "typescript": "*",
+    "typescript-eslint": "*"
   }
 }

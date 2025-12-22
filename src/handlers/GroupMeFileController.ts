@@ -1,4 +1,4 @@
-import { GroupMeMessageParseError } from "../errors";
+import { GroupMeMessageParseError } from "~/errors.js";
 
 export default class GroupMeFileController {
   /** Fetches the image from a given URL

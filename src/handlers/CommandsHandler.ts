@@ -5,7 +5,7 @@ import {
   Routes,
 } from "discord.js";
 import Command from "../commands/Command.js";
-import GM from "../commands/GM";
+import GM from "~/commands/GM.js";
 import GroupMeController from "./GroupMeController.js";
 
 export default class CommandsHandler {
@@ -48,13 +48,16 @@ export default class CommandsHandler {
       console.log("[INFO] Registering commands...");
 
       if (process.env.CLIENT_ID && process.env.SERVER_ID) {
-        this.rest.put(
-          Routes.applicationGuildCommands(
-            process.env.CLIENT_ID,
-            process.env.SERVER_ID,
-          ),
-          { body: this.commandsJSON },
-        );
+        this.rest
+          .put(
+            Routes.applicationGuildCommands(
+              process.env.CLIENT_ID,
+              process.env.SERVER_ID,
+            ),
+            { body: this.commandsJSON },
+          )
+          .then(() => console.log("[INFO]...Commands Registered"))
+          .catch(() => {});
 
         console.log("[INFO]...Commands Registered");
       } else console.log("[ERR] Client/ Server ID's not Found");

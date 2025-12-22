@@ -1,7 +1,7 @@
 /**
  * This map translates GroupMe emojiies into discord equivalents
  *
- * @TODO Unfinished
+ * @remarks TODO: Unfinished
  */
 
 export const emojiMap = [

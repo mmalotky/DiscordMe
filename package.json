@@ -24,6 +24,7 @@
     "watch": "npm-watch",
     "start": "tsx ./src/index.ts",
     "lint": "eslint --fix .",
+    "lint-check": "eslint --fix .",
     "test": "jest",
     "format": "prettier -w .",
     "format-check": "prettier -c ."

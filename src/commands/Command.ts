@@ -4,7 +4,7 @@ export default interface Command {
     /**
      * Discord Command Interface.
      * getData returns a command's metadata and descriptors
-     * execute runs an asyncronous responce to a client interation
+     * execute runs an asynchronous response to a client iteration
      */
 
     getData: () => SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder

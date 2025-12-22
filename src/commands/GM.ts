@@ -1,8 +1,9 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, WebhookClient } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder, TextBasedChannel, Webhook, WebhookClient } from "discord.js";
 import Command from "./Command.js";
 import GroupMeController from "../handlers/GroupMeController.js";
 import DataHandler from "../handlers/DataHandler.js";
-import { parceDiscordMessage } from "../utility/MessageParcer.js";
+import { parseDiscordMessage } from "../utility/MessageParser.js";
+import GroupMeMessage from "../models/GroupMeMessage.js";
 import WebHooksHandler from "../handlers/WebhooksHandler.js";
 
 export default class GM implements Command {
@@ -14,9 +15,11 @@ export default class GM implements Command {
      */
 
     private gmController:GroupMeController;
+    private webHooksHandler:WebHooksHandler;
 
     constructor(controller:GroupMeController) {
         this.gmController = controller;
+        this.webHooksHandler = new WebHooksHandler();
     }
 
     /** 
@@ -53,11 +56,11 @@ export default class GM implements Command {
                 .setDescription("Get messages since last update");
         });
 
-    /** Interface implimentation for returning metadata */
+    /** Interface implementation for returning metadata */
     getData() { return this.data; }
     
     /** 
-     * Interface implimentation of executing the slash command.
+     * Interface implementation of executing the slash command.
      * Selects from the list of subcommands.
      */
     async execute(interaction:ChatInputCommandInteraction) {
@@ -89,13 +92,12 @@ export default class GM implements Command {
 
     /** 
      * Update subcommand.
-     * Pulls data from Groupme and adds sends any new messages to the discord client.
-     * Updates the lastest message ID for each message sent.
+     * Pulls data from GroupMe and adds sends any new messages to the discord client.
+     * Updates the latest message ID for each message sent.
      * Creates Webhooks to emulate different GroupMe Users
      * @param interaction
      * */
     private async update(interaction: ChatInputCommandInteraction) {
-        const webHookHandler =  new WebHooksHandler();
         const groupMeChannel = await DataHandler.getConfig(interaction.channelId);
         const discordChannel = interaction.channel;
         if(!groupMeChannel || !discordChannel) return;
@@ -116,31 +118,37 @@ export default class GM implements Command {
         }
 
         for(const message of messages) {
-            const username = message.getMember().getName();
-            const avatar = message.getIsSystem() ?
-                "https://cdn.groupme.com/images/og_image_poundie.png" :
-                "https://cdn-icons-png.freepik.com/512/8742/8742495.png";
-            
-            let webHook = await webHookHandler.getWebHookByName(discordChannel, username, avatar);
-            if(!webHook) {
-                webHook = await webHookHandler.createWebHook(discordChannel, username, avatar);
-            }
-            if(!webHook) return;
+            const webHook = await this.getWebHook(discordChannel, message);
             const webHookClient = new WebhookClient({ url:webHook.url });
 
-            const payload = parceDiscordMessage(message);
-            webHookClient.send(payload);
+            const payload = parseDiscordMessage(message);
+            await webHookClient.send(payload);
 
             groupMeChannel.setLastMessageID(message.getID());
             DataHandler.setConfig(interaction.channelId, groupMeChannel);
         }
     }
 
+    /**
+     * Find or create a webhook for a GroupMe message
+     * @param discordChannel discord channel for the webhook
+     * @param message GroupMeMessage using the Webhook
+     * @returns Promise<Webhook>
+     */
+    private async getWebHook(discordChannel:TextBasedChannel, message:GroupMeMessage):Promise<Webhook> {
+        let webHook = await this.webHooksHandler.getWebhookByChannel(discordChannel);
+
+        if(!webHook) return await this.webHooksHandler.createWebHook(discordChannel, message);
+        else if(webHook.name === message.getMember().getName()) return webHook;
+        else return await this.webHooksHandler.editWebhook(webHook, message);
+    }
+
+
     /** 
      * Config subcommand.
-     * Configures a Discord channel to recieve messages from a GroupMe
-     * channel when the update command is run. Stores the preferances
-     * perminent data. Does not update a Discord Channel with an existing
+     * Configures a Discord channel to receive messages from a GroupMe
+     * channel when the update command is run. Stores the preferences
+     * permanent data. Does not update a Discord Channel with an existing
      * configuration (see setConfig). 
      * @param interaction
      * */
@@ -148,9 +156,9 @@ export default class GM implements Command {
         const channel = await this.getChannel(interaction);
         if(!channel) return;
 
-        const sucess = await DataHandler.addConfig(interaction.channelId, channel);
+        const success = await DataHandler.addConfig(interaction.channelId, channel);
 
-        if(sucess) {
+        if(success) {
             interaction.reply({
                 content:`Configured to channel ${channel.getName()}`,
                 ephemeral:true
@@ -191,8 +199,8 @@ export default class GM implements Command {
     }
 
     /**
-     * GetCongig Subcommand
-     * Sents the current GroupMe Channel configured to a Discord Channel
+     * GetConfig Subcommand
+     * Sends the current GroupMe Channel configured to a Discord Channel
      * @param interaction 
      */
     private async getConfig(interaction:ChatInputCommandInteraction) {
@@ -213,7 +221,7 @@ export default class GM implements Command {
     }
 
     /**
-     * A utility function for pulling GroupMe Channels available for configuation
+     * A utility function for pulling GroupMe Channels available for configuration
      * and comparing to a string parameter in the Discord interaction.
      * 
      * @TODO Discuss Security and Privacy Implications!

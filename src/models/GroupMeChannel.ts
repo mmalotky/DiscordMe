@@ -1,6 +1,6 @@
 export default class GroupMeChannel {
     /**
-     * Model for GroupMe Channel for encoding persistant data
+     * Model for GroupMe Channel for encoding persistent data
      */
 
     private id:string;

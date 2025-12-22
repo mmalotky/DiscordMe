@@ -1,35 +1,39 @@
-import { TextBasedChannel, TextChannel } from "discord.js";
-import { WARN } from "../utility/LogMessage";
+import { TextBasedChannel, TextChannel, Webhook } from "discord.js";
+import { ConfigurationError } from "../errors";
+import GroupMeMessage from "../models/GroupMeMessage";
 
 export default class WebHooksHandler {
     /** Manage Discord Webhooks */
-    
+
     /**
-     * Retrieve Webhook by name
-     * @param channel Discord Channel
-     * @param name search string
-     * @param avatar
-     * @returns Webhook
+     * Edits an existing webhook according to a GroupMe message
+     * @param webHook webhook to edit
+     * @param message message to apply to
+     * @returns webhook
      */
-    public async getWebHookByName(channel:TextBasedChannel, name:string, avatar?:string) {
-        const webhooks = await this.getWebHooks(channel);
-        if(!webhooks) return;
-
-        const firstCheck =  webhooks.filter(wh => wh.name === name);
-        if(firstCheck.length === 1) return firstCheck[0];
-
-        const secondCheck = webhooks.filter(wh => wh.avatarURL() === avatar);
-        return secondCheck[0];
+    public async editWebhook(webHook:Webhook, message: GroupMeMessage):Promise<Webhook> {
+        const name = message.getMember().getName();
+        const avatar = message.getIsSystem() ?
+            "https://cdn.groupme.com/images/og_image_poundie.png" :
+            "https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg";
+        
+        return webHook.edit({ name, avatar });
     }
 
-    /** Utility function to retirve webhooks for a given channel */
-    private async getWebHooks(channel:TextBasedChannel) {
+    /**
+     * Finds the webhook in a channel associated with the application id
+     * @param channel Discord Channel
+     * @returns Webhook attached to the application id
+     */
+    public async getWebhookByChannel(channel: TextBasedChannel): Promise<Webhook> {
         if(!channel || !(channel instanceof TextChannel)) {
-            WARN("Invalid Channel");
-            return;
+            throw new ConfigurationError(`Channel ${channel} not found.`);
         }
+        const applicationId = channel.client.application.id;
+
         const collection =  await channel.fetchWebhooks();
-        return collection.map(wh => wh);
+        const filter = collection.map(wh => wh).filter(wh => wh.applicationId === applicationId);
+        return filter[0];
     }
 
     /**
@@ -38,12 +42,18 @@ export default class WebHooksHandler {
      * @param name Webhook name
      * @param avatar Webhook Avatar URL
      * @returns null or webhook promise
+     * @throws ConfigurationError
      */
-    public async createWebHook(channel:TextBasedChannel, name:string, avatar:string) {
+    public async createWebHook(channel:TextBasedChannel, message:GroupMeMessage):Promise<Webhook> {
         if(!channel || !(channel instanceof TextChannel)) {
-            WARN("Invalid Channel");
-            return;
+            throw new ConfigurationError(`Channel ${channel} not found.`);
         }
-        return await channel.createWebhook({ name, avatar });
+
+        const name = message.getMember().getName();
+        const avatar = message.getIsSystem() ?
+            "https://cdn.groupme.com/images/og_image_poundie.png" :
+            "https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg";
+        
+        return channel.createWebhook({ name, avatar });
     }
 }

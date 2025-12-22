@@ -12,7 +12,7 @@ export default class CommandsHandler {
   /**
    * Commands Handler. Manage and register bot commands
    *
-   * @param GroupMeController
+   * @param gmController - GroupMeController
    */
 
   /** List of Slash commands */

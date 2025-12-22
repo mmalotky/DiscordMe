@@ -122,6 +122,33 @@ export default class GM implements Command {
             const webHookClient = new WebhookClient({ url:webHook.url });
 
             const payload = parseDiscordMessage(message);
+            payload.content = payload.content? payload.content : "";
+            const contentLength = payload.content.length;
+
+            let i = 0;
+            for(let j = 1500; j < contentLength; i = j, j += 1500) {
+                const re = /(?<!^\[<t:.+>\] +)(?<!^\[<t)[:\s][^:\s]+[:\s]*$/;
+                const areaCheck = payload.content.substring(i, j);
+                const substring = areaCheck.replace(re, "");
+                j -= 1500 - substring.length;
+
+                const tag = /^\[<t:.+>\]   /;
+                const text = substring.replace(tag, "");
+
+                const subMessage = new GroupMeMessage(
+                    message.getID(), 
+                    message.getMember(),
+                    message.getGroupID(), 
+                    message.getCreatedOn(),
+                    text,
+                    [],
+                    message.getIsSystem()
+                );
+                const subPayload = parseDiscordMessage(subMessage);
+                await webHookClient.send(subPayload);
+            }
+
+            payload.content = payload.content.substring(i);
             await webHookClient.send(payload);
 
             groupMeChannel.setLastMessageID(message.getID());
@@ -138,9 +165,22 @@ export default class GM implements Command {
     private async getWebHook(discordChannel:TextBasedChannel, message:GroupMeMessage):Promise<Webhook> {
         let webHook = await this.webHooksHandler.getWebhookByChannel(discordChannel);
 
-        if(!webHook) return await this.webHooksHandler.createWebHook(discordChannel, message);
-        else if(webHook.name === message.getMember().getName()) return webHook;
-        else return await this.webHooksHandler.editWebhook(webHook, message);
+        try {
+            const avatar = message.getMember().getAvatarURL() ? 
+            await this.gmController.getImage(message.getMember().getAvatarURL() + ".avatar")
+                : null;
+
+            if(!webHook) return await this.webHooksHandler.createWebHook(discordChannel, message, avatar);
+            else if(webHook.name === message.getMember().getName()) return webHook;
+            else return await this.webHooksHandler.editWebhook(webHook, message, avatar);
+        } catch (err) {
+            console.error(err.message);
+
+            if(!webHook) return await this.webHooksHandler.createWebHook(discordChannel, message, null);
+            else if(webHook.name === message.getMember().getName()) return webHook;
+            else return await this.webHooksHandler.editWebhook(webHook, message, null);
+        }
+        
     }
 
 

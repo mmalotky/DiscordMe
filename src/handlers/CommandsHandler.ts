@@ -1,3 +1,10 @@
+/**
+ * Commands Handler. Manage and register bot commands
+ *
+ * @param gmController - GroupMeController
+ */
+
+import { INFO, ERR } from "~/utility/LogMessage.js";
 import dotenv from "dotenv";
 import {
   REST,
@@ -5,64 +12,55 @@ import {
   Routes,
 } from "discord.js";
 import Command from "~/commands/Command.js";
-import GM from "~/commands/GM.js";
-import GroupMeController from "./GroupMeController.js";
+import GroupMeController from "~/handlers/GroupMeController.js";
+import { default as GMCommands } from "~/commands/GM.js";
 
-export default class CommandsHandler {
-  /**
-   * Commands Handler. Manage and register bot commands
-   *
-   * @param gmController - GroupMeController
-   */
+const commands: Command[] = [];
+const commandsJSON: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
+const rest = new REST({ version: "10" });
 
-  /** List of Slash commands */
-  private commands: Command[] = [];
+/**
+ * Initializes the handler
+ */
+export function init(gmController: GroupMeController) {
+  INFO("Initializing ");
+  dotenv.config();
+  const gm = new GMCommands(gmController);
+  commands.length = 0;
+  commands.push(gm);
+  commands.length = 0;
+  commandsJSON.push(gm.getData().toJSON());
 
-  /** JSON format of Command List to register commands with discord servers */
-  private commandsJSON: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
+  if (process.env.DISCORD_TOKEN) {
+    rest.setToken(process.env.DISCORD_TOKEN);
+  } else ERR("No discord token found");
+}
 
-  /** REST client to send registered commands */
-  private rest = new REST({ version: "10" });
+/** Returns the list of commands */
+export function get(): readonly Command[] {
+  return commands;
+}
 
-  /** New commands must be configured here */
-  constructor(gmController: GroupMeController) {
-    dotenv.config();
+/** Sends list of commands to Discord. Should be used during start up. */
+export function register() {
+  try {
+    INFO("Registering commands...");
 
-    const gm = new GM(gmController);
-    this.commands.push(gm);
-    this.commandsJSON.push(gm.getData().toJSON());
+    if (process.env.CLIENT_ID && process.env.SERVER_ID) {
+      rest
+        .put(
+          Routes.applicationGuildCommands(
+            process.env.CLIENT_ID,
+            process.env.SERVER_ID,
+          ),
+          { body: commandsJSON },
+        )
+        .then(() => INFO("...Commands Registered"))
+        .catch(() => {});
 
-    if (process.env.DISCORD_TOKEN)
-      this.rest.setToken(process.env.DISCORD_TOKEN);
-    else console.log("[ERR]: No discord token found");
-  }
-
-  /** Returns the list of commands */
-  getCommands() {
-    return this.commands;
-  }
-
-  /** Sends list of commands to Discord. Should be used during start up. */
-  register() {
-    try {
-      console.log("[INFO] Registering commands...");
-
-      if (process.env.CLIENT_ID && process.env.SERVER_ID) {
-        this.rest
-          .put(
-            Routes.applicationGuildCommands(
-              process.env.CLIENT_ID,
-              process.env.SERVER_ID,
-            ),
-            { body: this.commandsJSON },
-          )
-          .then(() => console.log("[INFO]...Commands Registered"))
-          .catch(() => {});
-
-        console.log("[INFO]...Commands Registered");
-      } else console.log("[ERR] Client/ Server ID's not Found");
-    } catch (err) {
-      console.log(err);
-    }
+      console.log("[INFO]...Commands Registered");
+    } else ERR("Client/ Server ID's not Found");
+  } catch (err) {
+    ERR(err);
   }
 }

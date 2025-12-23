@@ -13,10 +13,7 @@ const DATA_PATH = "data";
  * @param discordID - Discord channel ID
  * @param groupMeChannel - GroupMe Channel Model
  */
-export function addConfig(
-  discordID: string,
-  groupMeChannel: GroupMeChannel,
-) {
+export function addConfig(discordID: string, groupMeChannel: GroupMeChannel) {
   if (checkConfig(discordID)) {
     WARN(`Channel ${discordID} already has a GroupMe channel assigned`);
     return false;
@@ -41,11 +38,8 @@ export function addConfig(
  * @param discordID - Discord Channel ID
  * @param groupMeChannel - GroupMe Channel Model
  */
-export function setConfig(
-  discordID: string,
-  groupMeChannel: GroupMeChannel,
-) {
-  if (!(checkConfig(discordID))) {
+export function setConfig(discordID: string, groupMeChannel: GroupMeChannel) {
+  if (!checkConfig(discordID)) {
     WARN(`No config exists for channel ${discordID}`);
     return false;
   }

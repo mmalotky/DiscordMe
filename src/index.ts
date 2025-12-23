@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import { Client, IntentsBitField, Events } from "discord.js";
 import * as CommandsHandler from "./handlers/CommandsHandler.js";
-import GroupMeController from "./handlers/GroupMeController.js";
+import * as GroupMeController from "./handlers/GroupMeController.js";
 import { ERR, INFO } from "./utility/LogMessage.js";
 
 class Init {
@@ -20,7 +20,6 @@ class Init {
   });
 
   /** Initiate GroupMe Controller */
-  private groupMeController = new GroupMeController();
 
   /**
    * Start up scripts. Acquire Tokens for GroupMe and Discord,
@@ -28,14 +27,17 @@ class Init {
    * */
   main() {
     dotenv.config();
+    INFO("Discord Login");
     this.client
       .login(process.env.DISCORD_TOKEN)
       .then(() => {
-        this.groupMeController.setToken(process.env.GROUPME_TOKEN);
+        INFO("Setting GroupMe Token");
+        GroupMeController.setToken(process.env.GROUPME_TOKEN);
 
         this.client.once(Events.ClientReady, () => {
           INFO("DiscordMe Starting");
-          CommandsHandler.init(this.groupMeController);
+          CommandsHandler.setToken(process.env.DISCORD_TOKEN);
+          CommandsHandler.init();
           CommandsHandler.register();
           this.handleCommands();
           INFO("DiscordMe Online");

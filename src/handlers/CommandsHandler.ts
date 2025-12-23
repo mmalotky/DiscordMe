@@ -1,39 +1,36 @@
 /**
  * Commands Handler. Manage and register bot commands
  *
- * @param gmController - GroupMeController
  */
 
 import { INFO, ERR } from "~/utility/LogMessage.js";
-import dotenv from "dotenv";
 import {
   REST,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
   Routes,
 } from "discord.js";
 import Command from "~/commands/Command.js";
-import GroupMeController from "~/handlers/GroupMeController.js";
 import { default as GMCommands } from "~/commands/GM.js";
 
 const commands: Command[] = [];
 const commandsJSON: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
 const rest = new REST({ version: "10" });
 
+export function setToken(token: string | undefined) {
+  if (token) {
+    rest.setToken(token);
+  } else ERR("No discord token found");
+}
 /**
  * Initializes the handler
  */
-export function init(gmController: GroupMeController) {
+export function init() {
   INFO("Initializing ");
-  dotenv.config();
-  const gm = new GMCommands(gmController);
+  const gm = new GMCommands();
   commands.length = 0;
   commands.push(gm);
   commandsJSON.length = 0;
   commandsJSON.push(gm.getData().toJSON());
-
-  if (process.env.DISCORD_TOKEN) {
-    rest.setToken(process.env.DISCORD_TOKEN);
-  } else ERR("No discord token found");
 }
 
 /** Returns the list of commands */

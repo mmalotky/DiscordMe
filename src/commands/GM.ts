@@ -6,7 +6,7 @@ import {
   WebhookClient,
 } from "discord.js";
 import Command from "./Command.js";
-import GroupMeController from "~/handlers/GroupMeController.js";
+import * as GroupMeController from "~/handlers/GroupMeController.js";
 import * as DataHandler from "~/handlers/DataHandler.js";
 import { parseDiscordMessage } from "~/utility/MessageParser.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
@@ -16,15 +16,9 @@ export default class GM implements Command {
   /**
    * GM Command class. Allows bot configuration within discord servers
    * and pulling GroupMe chat history into the configured Channel.
-   *
-   * @param GroupMeController -
    */
 
-  private gmController: GroupMeController;
-
-  constructor(controller: GroupMeController) {
-    this.gmController = controller;
-  }
+  constructor() {}
 
   /**
    * Metadata for the Discord Command
@@ -113,7 +107,7 @@ export default class GM implements Command {
     const groupMeChannel = DataHandler.getConfig(interaction.channelId);
     const discordChannel = interaction.channel;
     if (!groupMeChannel || !discordChannel) return;
-    const messages = await this.gmController.getMessages(groupMeChannel);
+    const messages = await GroupMeController.getMessages(groupMeChannel);
 
     if (messages.length === 0) {
       await interaction.reply({
@@ -185,7 +179,7 @@ export default class GM implements Command {
 
     try {
       const avatar = message.getMember().getAvatarURL()
-        ? await this.gmController.getImage(
+        ? await GroupMeController.getImage(
             message.getMember().getAvatarURL() + ".avatar",
           )
         : null;
@@ -297,7 +291,7 @@ export default class GM implements Command {
    */
   private async getChannel(interaction: ChatInputCommandInteraction) {
     const channelName = interaction.options.getString("channel", true);
-    const response = await this.gmController.getChannelByName(channelName);
+    const response = await GroupMeController.getChannelByName(channelName);
 
     if (response.length === 0) {
       await interaction.reply({

@@ -1,127 +1,116 @@
 import GroupMeChannel from "~/models/GroupMeChannel.js";
 import { ERR } from "~/utility/LogMessage.js";
-import dotenv from "dotenv";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
 import * as GroupMeFileController from "./GroupMeFileController.js";
 import {
   GroupMeAPIMessage,
   parseGroupMeMessage,
 } from "~/utility/MessageParser.js";
-import { GroupMeMessageFetchError, ConfigurationError } from "~/errors.js";
+import { GroupMeMessageFetchError } from "~/errors.js";
 
-export default class GroupMeController {
-  /**
-   * Send data requests to GroupMe
-   */
+/**
+ * Send data requests to GroupMe
+ */
 
-  private GROUPME_TOKEN: string;
+let GROUPME_TOKEN: string;
 
-  private GROUPME_URL: string = "https://api.groupme.com/v3";
+const GROUPME_URL: string = "https://api.groupme.com/v3";
 
-  constructor() {
-    dotenv.config();
-    const token = process.env["GROUPME_TOKEN"];
-    if (!token) {
-      throw new ConfigurationError("token undefined");
-    }
+/** Set the GroupMe Access Token */
+export function setToken(token: string | undefined) {
+  if (token) {
+    GROUPME_TOKEN = token;
+  } else ERR("No GroupMe token defined.");
+}
 
-    this.GROUPME_TOKEN = token;
-  }
+/** Get the GroupMe Channel Model from the name */
+export async function getChannelByName(name: string) {
+  const channels = await getChannels();
+  return channels.filter((c) => c.getName() === name);
+}
 
-  /** Set the GroupMe Access Token */
-  public setToken(token?: string) {
-    if (token) {
-      this.GROUPME_TOKEN = token;
-    } else ERR("No GroupMe token defined.");
-  }
+/** Get a list of available GroupMe Channels */
+export async function getChannels() {
+  const channels: GroupMeChannel[] = [];
+  let page: number = 0;
+  let pageChannels: GroupMeChannel[] | undefined;
+  do {
+    page++;
+    pageChannels = await getPageChannels(page);
+    if (!pageChannels) break;
+    channels.push(...pageChannels);
+  } while (pageChannels.length !== 0);
 
-  /** Get the GroupMe Channel Model from the name */
-  public async getChannelByName(name: string) {
-    const channels = await this.getChannels();
-    return channels.filter((c) => c.getName() === name);
-  }
+  return channels;
+}
 
-  /** Get a list of available GroupMe Channels */
-  private async getChannels() {
-    const channels: GroupMeChannel[] = [];
-    let page: number = 0;
-    let pageChannels: GroupMeChannel[] | undefined;
-    do {
-      page++;
-      pageChannels = await this.getPageChannels(page);
-      if (!pageChannels) break;
-      channels.push(...pageChannels);
-    } while (pageChannels.length !== 0);
-
-    return channels;
-  }
-
-  /** Utility function for iterating through pages of the GroupMe Channel List */
-  private async getPageChannels(page: number) {
-    try {
-      const url = `${this.GROUPME_URL}/groups?token=${this.GROUPME_TOKEN}&page=${page}`;
-      const response: Response = await fetch(url);
-      if (response.status !== 200)
-        throw new GroupMeMessageFetchError(
-          `Request failed with status ${response.status}`,
-        );
-
-      const json = (await response.json()) as { response: GroupMeAPIMessage[] };
-      const data: GroupMeAPIMessage[] = json.response;
-      const channels = data.map((ch) => new GroupMeChannel(ch.id, ch.name));
-      return channels;
-    } catch (e) {
-      ERR(e);
-    }
-  }
-
-  /** Get the messages from a GroupMe Channel staring from the last message ID in persistent data */
-  public async getMessages(channel: GroupMeChannel): Promise<GroupMeMessage[]> {
-    const messages: GroupMeMessage[] = [];
-    let messagePage: GroupMeMessage[];
-    let lastID: string = `${channel.getLastMessageID()}`;
-
-    do {
-      messagePage = await this.getMessagesAfterID(channel.getID(), lastID);
-      if (messagePage == null) return messages;
-      messages.push(...messagePage);
-
-      if (messagePage.length > 0) {
-        lastID = messagePage[messagePage.length - 1].getID();
-      }
-    } while (messagePage.length > 0);
-
-    return messages;
-  }
-
-  /** Utility function for iterating through pages of channel messages
-   *
-   * @throws GroupMeMessageParseError
-   * @throws GroupMeMessageFetchError
-   */
-  private async getMessagesAfterID(
-    channelID: string,
-    lastID: string,
-  ): Promise<GroupMeMessage[]> {
-    const url = `${this.GROUPME_URL}/groups/${channelID}/messages?token=${this.GROUPME_TOKEN}&after_id=${lastID}`;
-
-    const response = await fetch(url);
+/** Utility function for iterating through pages of the GroupMe Channel List */
+async function getPageChannels(page: number) {
+  try {
+    const url = `${GROUPME_URL}/groups?token=${GROUPME_TOKEN}&page=${page}`;
+    const response: Response = await fetch(url);
     if (response.status !== 200)
-      throw new GroupMeMessageFetchError(`STATUS: ${response.status}`);
+      throw new GroupMeMessageFetchError(
+        `Request failed with status ${response.status}`,
+      );
 
-    const json = (await response.json()) as {
-      response: { messages: GroupMeAPIMessage[] };
-    };
-    const raw: GroupMeAPIMessage[] = json.response.messages;
-    const messages: GroupMeMessage[] = [];
+    const json = (await response.json()) as { response: GroupMeAPIMessage[] };
+    const data: GroupMeAPIMessage[] = json.response;
+    const channels = data.map((ch) => new GroupMeChannel(ch.id, ch.name));
+    return channels;
+  } catch (e) {
+    ERR(e);
+  }
+}
 
-    for (const data of raw) {
-      messages.push(await parseGroupMeMessage(data));
+/** Get the messages from a GroupMe Channel staring from the last message ID in persistent data */
+export async function getMessages(
+  channel: GroupMeChannel,
+): Promise<GroupMeMessage[]> {
+  const messages: GroupMeMessage[] = [];
+  let messagePage: GroupMeMessage[];
+  let lastID: string = `${channel.getLastMessageID()}`;
+
+  do {
+    messagePage = await getMessagesAfterID(channel.getID(), lastID);
+    if (messagePage == null) return messages;
+    messages.push(...messagePage);
+
+    if (messagePage.length > 0) {
+      lastID = messagePage[messagePage.length - 1].getID();
     }
-    return messages;
-  }
+  } while (messagePage.length > 0);
 
-  public async getImage(url: string) {
-    return GroupMeFileController.getFile(url);
+  return messages;
+}
+
+/** Utility function for iterating through pages of channel messages
+ *
+ * @throws GroupMeMessageParseError
+ * @throws GroupMeMessageFetchError
+ */
+async function getMessagesAfterID(
+  channelID: string,
+  lastID: string,
+): Promise<GroupMeMessage[]> {
+  const url = `${GROUPME_URL}/groups/${channelID}/messages?token=${GROUPME_TOKEN}&after_id=${lastID}`;
+
+  const response = await fetch(url);
+  if (response.status !== 200)
+    throw new GroupMeMessageFetchError(`STATUS: ${response.status}`);
+
+  const json = (await response.json()) as {
+    response: { messages: GroupMeAPIMessage[] };
+  };
+  const raw: GroupMeAPIMessage[] = json.response.messages;
+  const messages: GroupMeMessage[] = [];
+
+  for (const data of raw) {
+    messages.push(await parseGroupMeMessage(data));
   }
+  return messages;
+}
+
+export async function getImage(url: string) {
+  return GroupMeFileController.getFile(url);
 }

@@ -7,7 +7,7 @@ import {
 } from "discord.js";
 import Command from "./Command.js";
 import GroupMeController from "~/handlers/GroupMeController.js";
-import DataHandler from "~/handlers/DataHandler.js";
+import * as DataHandler from "~/handlers/DataHandler.js";
 import { parseDiscordMessage } from "~/utility/MessageParser.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
 import WebHooksHandler from "~/handlers/WebhooksHandler.js";
@@ -98,7 +98,7 @@ export default class GM implements Command {
 
       default:
         await interaction.reply({
-          content: `Subcommand "${subcommand}" not recognised.`,
+          content: `Subcommand "${subcommand}" not recognized.`,
           ephemeral: true,
         });
     }
@@ -112,7 +112,7 @@ export default class GM implements Command {
    * @param interaction -
    * */
   private async update(interaction: ChatInputCommandInteraction) {
-    const groupMeChannel = await DataHandler.getConfig(interaction.channelId);
+    const groupMeChannel = DataHandler.getConfig(interaction.channelId);
     const discordChannel = interaction.channel;
     if (!groupMeChannel || !discordChannel) return;
     const messages = await this.gmController.getMessages(groupMeChannel);
@@ -169,7 +169,7 @@ export default class GM implements Command {
       await webHookClient.send(payload);
 
       groupMeChannel.setLastMessageID(message.getID());
-      await DataHandler.setConfig(interaction.channelId, groupMeChannel);
+      DataHandler.setConfig(interaction.channelId, groupMeChannel);
     }
   }
 
@@ -229,7 +229,7 @@ export default class GM implements Command {
     const channel = await this.getChannel(interaction);
     if (!channel) return;
 
-    const success = await DataHandler.addConfig(interaction.channelId, channel);
+    const success = DataHandler.addConfig(interaction.channelId, channel);
 
     if (success) {
       await interaction.reply({
@@ -254,8 +254,8 @@ export default class GM implements Command {
     const channel = await this.getChannel(interaction);
     if (!channel) return;
 
-    const rm = await DataHandler.rmConfig(interaction.channelId);
-    const add = await DataHandler.addConfig(interaction.channelId, channel);
+    const rm = DataHandler.rmConfig(interaction.channelId);
+    const add = DataHandler.addConfig(interaction.channelId, channel);
 
     if (rm && add) {
       await interaction.reply({
@@ -276,7 +276,7 @@ export default class GM implements Command {
    * @param interaction -
    */
   private async getConfig(interaction: ChatInputCommandInteraction) {
-    const channel = await DataHandler.getConfig(interaction.channelId);
+    const channel = DataHandler.getConfig(interaction.channelId);
 
     if (channel) {
       await interaction.reply({

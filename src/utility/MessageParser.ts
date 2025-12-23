@@ -18,7 +18,7 @@ import GroupMeMessage from "~/models/GroupMeMessage.js";
 import { WARN } from "./LogMessage.js";
 import { emojiMap } from "./GroupMeEmojiMap.js";
 import { GroupMeMessageParseError } from "~/errors.js";
-import GroupMeFileController from "~/handlers/GroupMeFileController.js";
+import * as GroupMeFileController from "~/handlers/GroupMeFileController.js";
 import { codeEmojis } from "./DiscordEmojiMap.js";
 
 /**
@@ -58,7 +58,6 @@ type GroupMeAPIAttachment = {
  */
 export async function parseGroupMeMessage(
   json: GroupMeAPIMessage,
-  fileController: GroupMeFileController,
 ): Promise<GroupMeMessage> {
   return new GroupMeMessage(
     json.id,
@@ -66,14 +65,13 @@ export async function parseGroupMeMessage(
     json.group_id,
     new Date(json.created_at * 1000),
     json.text,
-    await parseAttachments(json, fileController),
+    await parseAttachments(json),
     json.system,
   );
 }
 
 async function parseAttachments(
   json: GroupMeAPIMessage,
-  fileC: GroupMeFileController,
 ): Promise<GroupMeAttachment[]> {
   const rawAttachments: GroupMeAPIAttachment[] = json.attachments;
   const attachments: GroupMeAttachment[] = [];
@@ -81,7 +79,7 @@ async function parseAttachments(
   for (const raw of rawAttachments) {
     switch (raw.type) {
       case "image": {
-        attachments.push(await parseImageAttachment(raw, fileC));
+        attachments.push(await parseImageAttachment(raw));
         break;
       }
       case "emoji": {
@@ -101,7 +99,7 @@ async function parseAttachments(
         break;
       }
       case "file": {
-        attachments.push(await parseFileAttachment(json, raw, fileC));
+        attachments.push(await parseFileAttachment(json, raw));
         break;
       }
       case "reply": {
@@ -130,14 +128,13 @@ async function parseAttachments(
 }
 
 /**
- *
+ * Extract GroupMe Image data
  * @param raw -
  *
  * @Throws GroupMeMessageParseError
  */
 async function parseImageAttachment(
   raw: GroupMeAPIAttachment,
-  fileC: GroupMeFileController,
 ): Promise<GroupMeAttachment> {
   const imgUrl = raw.url;
   const re: RegExp = /\w+(?=\.\w{32}$)/;
@@ -151,13 +148,13 @@ async function parseImageAttachment(
   const extension = extensionSearch[0];
 
   const imgName = "GroupMeImage." + extension;
-  const image = await fileC.getFile(imgUrl);
+  const image = await GroupMeFileController.getFile(imgUrl);
 
   return new GroupMeImageAttachment(imgName, image);
 }
 
 /**
- *
+ * Extract GroupMe Emoji data
  * @param raw -
  *
  * @throws GroupMeMessageParseError
@@ -169,7 +166,7 @@ function parseEmojiAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
 }
 
 /**
- *
+ * Extract GroupMe Location data
  * @param raw -
  *
  * @throws GroupMeMessageParseError
@@ -182,7 +179,7 @@ function parseLocationAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
 }
 
 /**
- *
+ * Extract GroupMe Split data
  * @param raw -
  *
  * @throws GroupMeMessageParseError
@@ -193,7 +190,7 @@ function parseSplitAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
 }
 
 /**
- *
+ * Extract GroupMe Video data
  * @param raw -
  *
  * @throws GroupMeMessageParseError
@@ -204,26 +201,26 @@ function parseVideoAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
 }
 
 /**
- *
+ * Extract GroupMe File data
  * @param raw -
+ * @param json -
  *
  * @throws GroupMeMessageParseError
  */
 async function parseFileAttachment(
   json: GroupMeAPIMessage,
   raw: GroupMeAPIAttachment,
-  fileC: GroupMeFileController,
 ): Promise<GroupMeAttachment> {
   const fileId = raw.file_id;
   const fileURL = `https://file.groupme.com/v1/${json.group_id}/files/${fileId}?token=${process.env.GROUPME_TOKEN}`;
-  const fileData = await fileC.getFile(fileURL);
-  const fileName = await fileC.getFileName(fileURL);
+  const fileData = await GroupMeFileController.getFile(fileURL);
+  const fileName = await GroupMeFileController.getFileName(fileURL);
 
   return new GroupMeFileAttachment(fileURL, fileName, fileData);
 }
 
 /**
- *
+ * Extract GroupMe Reply data
  * @param raw -
  *
  * @throws GroupMeMessageParseError
@@ -234,7 +231,7 @@ function parseReplyAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
 }
 
 /**
- *
+ * Extract GroupMe Mentions Data
  * @param raw -
  *
  * @throws GroupMeMessageParseError
@@ -246,7 +243,7 @@ function parseMentionsAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
 }
 
 /**
- *
+ * Extract GroupMe Poll Data
  * @param raw -
  *
  * @throws GroupMeMessageParseError
@@ -257,7 +254,7 @@ function parsePollAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
 }
 
 /**
- *
+ * Extract GroupMe Event data
  * @param raw -
  *
  * @throws GroupMeMessageParseError

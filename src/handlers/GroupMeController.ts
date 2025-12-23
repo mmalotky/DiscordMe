@@ -2,7 +2,7 @@ import GroupMeChannel from "~/models/GroupMeChannel.js";
 import { ERR } from "~/utility/LogMessage.js";
 import dotenv from "dotenv";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
-import GroupMeFileController from "./GroupMeFileController.js";
+import * as GroupMeFileController from "./GroupMeFileController.js";
 import {
   GroupMeAPIMessage,
   parseGroupMeMessage,
@@ -17,8 +17,6 @@ export default class GroupMeController {
   private GROUPME_TOKEN: string;
 
   private GROUPME_URL: string = "https://api.groupme.com/v3";
-
-  private fileController = new GroupMeFileController();
 
   constructor() {
     dotenv.config();
@@ -118,12 +116,12 @@ export default class GroupMeController {
     const messages: GroupMeMessage[] = [];
 
     for (const data of raw) {
-      messages.push(await parseGroupMeMessage(data, this.fileController));
+      messages.push(await parseGroupMeMessage(data));
     }
     return messages;
   }
 
   public async getImage(url: string) {
-    return this.fileController.getFile(url);
+    return GroupMeFileController.getFile(url);
   }
 }

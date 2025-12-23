@@ -181,8 +181,7 @@ export default class GM implements Command {
     discordChannel: TextBasedChannel,
     message: GroupMeMessage,
   ): Promise<Webhook> {
-    const webHook =
-      await WebHooksHandler.getWebhookByChannel(discordChannel);
+    const webHook = await WebHooksHandler.getWebhookByChannel(discordChannel);
 
     try {
       const avatar = message.getMember().getAvatarURL()
@@ -198,8 +197,7 @@ export default class GM implements Command {
           avatar,
         );
       else if (webHook.name === message.getMember().getName()) return webHook;
-      else
-        return await WebHooksHandler.editWebhook(webHook, message, avatar);
+      else return await WebHooksHandler.editWebhook(webHook, message, avatar);
     } catch (err) {
       console.error(err);
 
@@ -210,8 +208,7 @@ export default class GM implements Command {
           null,
         );
       else if (webHook.name === message.getMember().getName()) return webHook;
-      else
-        return await WebHooksHandler.editWebhook(webHook, message, null);
+      else return await WebHooksHandler.editWebhook(webHook, message, null);
     }
   }
 

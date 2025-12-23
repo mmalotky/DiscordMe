@@ -1,5 +1,6 @@
 import GroupMeChannel from "~/models/GroupMeChannel.js";
 import { ERR } from "~/utility/LogMessage.js";
+import dotenv from "dotenv";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
 import GroupMeFileController from "./GroupMeFileController.js";
 import {
@@ -20,6 +21,7 @@ export default class GroupMeController {
   private fileController = new GroupMeFileController();
 
   constructor() {
+    dotenv.config();
     const token = process.env["GROUPME_TOKEN"];
     if (!token) {
       throw new ConfigurationError("token undefined");

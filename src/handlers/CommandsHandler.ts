@@ -28,7 +28,7 @@ export function init(gmController: GroupMeController) {
   const gm = new GMCommands(gmController);
   commands.length = 0;
   commands.push(gm);
-  commands.length = 0;
+  commandsJSON.length = 0;
   commandsJSON.push(gm.getData().toJSON());
 
   if (process.env.DISCORD_TOKEN) {
@@ -57,8 +57,6 @@ export function register() {
         )
         .then(() => INFO("...Commands Registered"))
         .catch(() => {});
-
-      console.log("[INFO]...Commands Registered");
     } else ERR("Client/ Server ID's not Found");
   } catch (err) {
     ERR(err);

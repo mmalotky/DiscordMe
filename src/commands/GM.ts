@@ -10,7 +10,7 @@ import GroupMeController from "~/handlers/GroupMeController.js";
 import * as DataHandler from "~/handlers/DataHandler.js";
 import { parseDiscordMessage } from "~/utility/MessageParser.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
-import WebHooksHandler from "~/handlers/WebhooksHandler.js";
+import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
 
 export default class GM implements Command {
   /**
@@ -21,11 +21,9 @@ export default class GM implements Command {
    */
 
   private gmController: GroupMeController;
-  private webHooksHandler: WebHooksHandler;
 
   constructor(controller: GroupMeController) {
     this.gmController = controller;
-    this.webHooksHandler = new WebHooksHandler();
   }
 
   /**
@@ -184,7 +182,7 @@ export default class GM implements Command {
     message: GroupMeMessage,
   ): Promise<Webhook> {
     const webHook =
-      await this.webHooksHandler.getWebhookByChannel(discordChannel);
+      await WebHooksHandler.getWebhookByChannel(discordChannel);
 
     try {
       const avatar = message.getMember().getAvatarURL()
@@ -194,26 +192,26 @@ export default class GM implements Command {
         : null;
 
       if (!webHook)
-        return await this.webHooksHandler.createWebHook(
+        return await WebHooksHandler.createWebHook(
           discordChannel,
           message,
           avatar,
         );
       else if (webHook.name === message.getMember().getName()) return webHook;
       else
-        return await this.webHooksHandler.editWebhook(webHook, message, avatar);
+        return await WebHooksHandler.editWebhook(webHook, message, avatar);
     } catch (err) {
       console.error(err);
 
       if (!webHook)
-        return await this.webHooksHandler.createWebHook(
+        return await WebHooksHandler.createWebHook(
           discordChannel,
           message,
           null,
         );
       else if (webHook.name === message.getMember().getName()) return webHook;
       else
-        return await this.webHooksHandler.editWebhook(webHook, message, null);
+        return await WebHooksHandler.editWebhook(webHook, message, null);
     }
   }
 

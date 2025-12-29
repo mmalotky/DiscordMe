@@ -1,93 +1,9 @@
 import * as dotenv from "dotenv";
-import { Client, IntentsBitField, Events } from "discord.js";
-import * as CommandsHandler from "./handlers/CommandsHandler.js";
-import * as GroupMeController from "./handlers/GroupMeController.js";
-import { ERR, INFO } from "./utility/LogMessage.js";
+import * as Bot from "./handlers/BotHandler.js";
 
-class Init {
-  /**
-   * Set up, initiation, and start up scripts.
-   */
-
-  /** Setup Discord Client */
-  private client = new Client({
-    intents: [
-      IntentsBitField.Flags.Guilds,
-      IntentsBitField.Flags.GuildMembers,
-      IntentsBitField.Flags.GuildMessages,
-      IntentsBitField.Flags.MessageContent,
-    ],
-  });
-
-  /** Initiate GroupMe Controller */
-
-  /**
-   * Start up scripts. Acquire Tokens for GroupMe and Discord,
-   * register new commands, and begin listening for Discord Commands
-   * */
-  main() {
-    dotenv.config();
-    INFO("Discord Login");
-    this.client
-      .login(process.env.DISCORD_TOKEN)
-      .then(() => {
-        INFO("Setting GroupMe Token");
-        GroupMeController.setToken(process.env.GROUPME_TOKEN);
-
-        this.client.once(Events.ClientReady, () => {
-          INFO("DiscordMe Starting");
-          CommandsHandler.setToken(process.env.DISCORD_TOKEN);
-          CommandsHandler.init();
-          CommandsHandler.register();
-          this.handleCommands();
-          INFO("DiscordMe Online");
-        });
-      })
-      .catch(() => {});
-  }
-
-  /**
-   * Listen for Discord commands. Look up registered command, then execute the
-   * command according to the interaction parameters, sends an error message to
-   * Discord if the operation fails.
-   */
-  private handleCommands() {
-    this.client.on(Events.InteractionCreate, (interaction) => {
-      if (!interaction.isChatInputCommand()) return;
-      const command = CommandsHandler.get().filter(
-        (c) => c.getData().name === interaction.commandName,
-      )[0];
-
-      if (!command) {
-        ERR(`No command matching ${interaction.commandName} was found.`);
-        return;
-      }
-
-      command
-        .execute(interaction)
-        .then(() => {})
-        .catch((error) => {
-          ERR(error);
-          if (interaction.replied || interaction.deferred) {
-            interaction
-              .followUp({
-                content: "There was an error while executing this command!",
-                ephemeral: true,
-              })
-              .then(() => {})
-              .catch(() => {});
-          } else {
-            interaction
-              .reply({
-                content: "There was an error while executing this command!",
-                ephemeral: true,
-              })
-              .then(() => {})
-              .catch(() => {});
-          }
-        });
-    });
-  }
+function main() {
+  dotenv.config();
+  Bot.run();
 }
 
-new Init().main();
+main();

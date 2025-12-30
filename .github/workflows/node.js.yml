@@ -10,13 +10,12 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  format:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [22.x, 25.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: 25.x
 
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +24,53 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-      - run: npm install
-      - run: npm run format-check
-      - run: npm run lint-check
+      - name: Install dependencies
+        run: npm install
+      - name: Check formatting
+        run: npm run format-check
+
+  lint:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # Check a supported node range
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [22.x, 25.x]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - name: Install dependencies
+        run: npm install
+      - name: Check for lint and compile errors
+        run: npm run lint-check
+
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # Check minimal supported node range
+        node-version: 22.x
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - name: Install dependencies
+        run: npm install
+      - name: Run test
+        run: npm run test
+        env:
+          GROUPME_TOKEN: ${{ secrets.GROUPME_TOKEN }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          SERVER_ID: ${{ secrets.SERVER_ID }}

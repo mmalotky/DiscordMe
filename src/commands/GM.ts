@@ -206,17 +206,23 @@ export default class GM implements Command {
         codes delimited with colons.
         */
       const areaCheck = message.substring(i, i + 1500);
-      const re = /[:\s][^:\s]+[:\s]*$/;
-      const substring = areaCheck.replace(re, "");
-
-      if (substring.length === 0) {
+      if(areaCheck.length === 0) {
         i += 1;
         continue;
       }
-      messageList.push(substring);
 
-      i += substring.length;
-    } while (i <= message.length);
+      const re = /(\s+[^:\s]*$)|\s*(:[^:\s]+:[^:\s]*$)|\s*:[^\s:]*$/;
+      const substring = areaCheck.replace(re, "");
+
+      if (substring.length === 0) {
+        messageList.push(areaCheck);
+        i += areaCheck.length;
+      }
+      else {
+        messageList.push(substring);
+        i += substring.length;
+      }
+    } while (i < message.length);
 
     return messageList;
   }

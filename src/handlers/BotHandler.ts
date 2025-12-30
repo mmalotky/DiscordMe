@@ -75,7 +75,7 @@ export async function run() {
 
   INFO("Discord Login");
   await getClient().login(discordToken);
-  INFO("Login Complete")
+  INFO("Login Complete");
 
   INFO("Setting GroupMe Token");
   GroupMeController.setToken(process.env.GROUPME_TOKEN);

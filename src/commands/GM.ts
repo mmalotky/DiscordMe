@@ -139,13 +139,13 @@ export default class GM implements Command {
   }
 
   private async sendMessages(
-    groupMeChannel:GroupMeChannel, 
-    discordChannel:TextBasedChannel,
-    interaction?:ChatInputCommandInteraction
+    groupMeChannel: GroupMeChannel,
+    discordChannel: TextBasedChannel,
+    interaction?: ChatInputCommandInteraction,
   ) {
     const messages = await GroupMeController.getMessages(groupMeChannel);
 
-    if(interaction) {
+    if (interaction) {
       if (messages.length === 0) {
         await interaction.reply({
           content: "No new messages",
@@ -187,7 +187,8 @@ export default class GM implements Command {
       }
 
       groupMeChannel.setLastMessageID(message.getID());
-      if(interaction) DataHandler.setConfig(interaction.channelId, groupMeChannel);
+      if (interaction)
+        DataHandler.setConfig(interaction.channelId, groupMeChannel);
     }
   }
 
@@ -244,9 +245,7 @@ export default class GM implements Command {
 
     try {
       const avatar = message.getMember().getAvatarURL()
-        ? await getFile(
-            message.getMember().getAvatarURL() + ".avatar",
-          )
+        ? await getFile(message.getMember().getAvatarURL() + ".avatar")
         : null;
 
       if (!webHook)

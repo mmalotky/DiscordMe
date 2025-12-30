@@ -1,9 +1,17 @@
 import * as dotenv from "dotenv";
 import * as Bot from "./handlers/BotHandler.js";
+import { ERR } from "./utility/LogMessage.js";
 
-function main() {
+async function main() {
   dotenv.config();
-  Bot.run();
+  await Bot.run();
 }
 
-main();
+main()
+  .catch((e) => {
+    ERR(`Fatal exception:\n\t${e}`);
+    process.exit(-1);
+  })
+  .finally(() => {
+    if (process.env.CI) process.exit();
+  });

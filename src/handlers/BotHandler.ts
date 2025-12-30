@@ -2,11 +2,13 @@ import { Client, IntentsBitField, Events } from "discord.js";
 import * as CommandsHandler from "./CommandsHandler.js";
 import * as GroupMeController from "./GroupMeController.js";
 import Command from "~/commands/Command.js";
+import GMCommand from "~/commands/GM.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
+import { ConfigurationError } from "~/errors.js";
 
 let _client: Client | null;
 
-function getClient(): Client {
+export function getClient(): Client {
   return _client
     ? _client
     : (_client = new Client({
@@ -40,7 +42,7 @@ function handleCommands() {
       .execute(interaction)
       .then(() => {})
       .catch((error) => {
-        ERR(error);
+        ERR(`${error}`);
         if (interaction.replied || interaction.deferred) {
           interaction
             .followUp({
@@ -65,22 +67,27 @@ function handleCommands() {
  * Start up scripts. Acquire Tokens for GroupMe and Discord,
  * register new commands, and begin listening for Discord Commands
  * */
-export function run() {
-  INFO("Discord Login");
-  getClient()
-    .login(process.env.DISCORD_TOKEN)
-    .then(() => {
-      INFO("Setting GroupMe Token");
-      GroupMeController.setToken(process.env.GROUPME_TOKEN);
+export async function run() {
+  dotenv.config();
+  const groupMeToken = process.env.GROUPME_TOKEN;
+  if (!groupMeToken) throw new ConfigurationError("GROUPME_TOKEN not found");
+  const discordToken = process.env.DISCORD_TOKEN;
+  if (!discordToken) throw new ConfigurationError("DISCORD_TOKEN not found");
 
-      getClient().once(Events.ClientReady, () => {
-        INFO("DiscordMe Starting");
-        CommandsHandler.setToken(process.env.DISCORD_TOKEN);
-        CommandsHandler.init();
-        CommandsHandler.register();
-        handleCommands();
-        INFO("DiscordMe Online");
-      });
-    })
-    .catch(() => {});
+  INFO("Discord Login");
+  await getClient().login(discordToken);
+
+  INFO("Setting GroupMe Token");
+  GroupMeController.setToken(process.env.GROUPME_TOKEN);
+
+  getClient().once(Events.ClientReady, () => {
+    INFO("DiscordMe Starting");
+    CommandsHandler.setToken(process.env.DISCORD_TOKEN);
+    CommandsHandler.init();
+    CommandsHandler.register();
+    handleCommands();
+    INFO("DiscordMe Online");
+  });
+
+  if (process.env.CI) await new GMCommand().updateNow();
 }

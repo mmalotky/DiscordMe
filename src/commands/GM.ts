@@ -2,6 +2,7 @@ import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
   TextBasedChannel,
+  TextChannel,
   Webhook,
   WebhookClient,
 } from "discord.js";
@@ -11,6 +12,10 @@ import * as DataHandler from "~/handlers/DataHandler.js";
 import { parseDiscordMessage } from "~/utility/MessageParser.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
 import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
+import * as Bot from "~/handlers/BotHandler.js";
+import GroupMeChannel from "~/models/GroupMeChannel.js";
+import { ConfigurationError } from "~/errors.js";
+import { INFO } from "~/utility/LogMessage.js";
 
 export default class GM implements Command {
   /**
@@ -96,6 +101,67 @@ export default class GM implements Command {
     }
   }
 
+  async updateNow() {
+    INFO("Updating messages");
+    const discordChannelId = process.env.TEST_DISCORD_CHANNEL_ID;
+    if (!discordChannelId) {
+      throw new ConfigurationError("TEST_DISCORD_CHANNEL_ID not found");
+    }
+    const groupMeChannelId = process.env.TEST_GROUPME_GROUP_ID;
+    if (!groupMeChannelId) {
+      throw new ConfigurationError("TEST_GROUPME_GROUP_ID not found");
+    }
+    const groupMeChannel = new GroupMeChannel(groupMeChannelId, "TEST");
+    const discordChannel = (await Bot.getClient().channels.fetch(
+      discordChannelId,
+    )) as TextChannel | undefined;
+    if (!discordChannel)
+      throw new ConfigurationError("Failed to get discord channel from id");
+
+    const messages = await GroupMeController.getMessages(groupMeChannel);
+
+    for (const message of messages) {
+      const webHook = await this.getWebHook(discordChannel, message);
+      const webHookClient = new WebhookClient({ url: webHook.url });
+
+      const payload = parseDiscordMessage(message);
+      payload.content = payload.content ? payload.content : "";
+      const contentLength = payload.content.length;
+
+      let i = 0;
+      for (let j = 1500; j < contentLength; i = j, j += 1500) {
+        /*
+                Check for appropriate breaking points such as whitespace and characters outside of
+                codes delimited with colons. Exclude the opening tag.
+                */
+        const areaCheck = payload.content.substring(i, j);
+        const re = /(?<!^\[<t:.+>\] +)(?<!^\[<t)[:\s][^:\s]+[:\s]*$/;
+        const substring = areaCheck.replace(re, "");
+        j += substring.length - areaCheck.length;
+
+        const tag = /^\[<t:.+>\]\s{3}/;
+        const text = substring.replace(tag, "");
+
+        const subMessage = new GroupMeMessage(
+          message.getID(),
+          message.getMember(),
+          message.getGroupID(),
+          message.getCreatedOn(),
+          text,
+          [],
+          message.getIsSystem(),
+        );
+        const subPayload = parseDiscordMessage(subMessage);
+        await webHookClient.send(subPayload);
+      }
+      const finalMessage = payload.content.substring(i);
+      payload.content = finalMessage;
+      await webHookClient.send(payload);
+
+      groupMeChannel.setLastMessageID(message.getID());
+    }
+  }
+
   /**
    * Update subcommand.
    * Pulls data from GroupMe and adds sends any new messages to the discord client.
@@ -103,7 +169,7 @@ export default class GM implements Command {
    * Creates Webhooks to emulate different GroupMe Users
    * @param interaction -
    * */
-  private async update(interaction: ChatInputCommandInteraction) {
+  async update(interaction: ChatInputCommandInteraction) {
     const groupMeChannel = DataHandler.getConfig(interaction.channelId);
     const discordChannel = interaction.channel;
     if (!groupMeChannel || !discordChannel) return;
@@ -116,7 +182,7 @@ export default class GM implements Command {
       });
     } else {
       await interaction.reply({
-        content: "Success",
+        content: "Loading up messages",
         ephemeral: true,
       });
       await interaction.deleteReply();

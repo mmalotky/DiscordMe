@@ -74,3 +74,5 @@ jobs:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           SERVER_ID: ${{ secrets.SERVER_ID }}
+          TEST_DISCORD_CHANNEL_ID: ${{ secrets.TEST_DISCORD_CHANNEL_ID }}
+          TEST_GROUPME_GROUP_NAME: ${{ secrets.TEST_GROUPME_GROUP_NAME }}

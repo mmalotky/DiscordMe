@@ -269,7 +269,7 @@ export function parseDiscordMessage(
   gmMessage: GroupMeMessage,
 ): MessageCreateOptions {
   const tag = getTag(gmMessage);
-  const content = getContent(gmMessage);
+  const content = gmMessage.getText();
   const embeds = getEmbeds(gmMessage);
   const files = getFiles(gmMessage);
 
@@ -289,10 +289,10 @@ function getTag(gmMessage: GroupMeMessage) {
 }
 
 /** Utility function to add inline attachments to the GroupMe Message content body */
-function getContent(gmMessage: GroupMeMessage) {
+export function fillInlineAttachments(gmMessage: GroupMeMessage) {
   const attachments = gmMessage.getAttachments();
   const emojis = attachments.filter((a) => a instanceof GroupMeEmojiAttachment);
-  let text = gmMessage.getText() ? gmMessage.getText() : "";
+  let text = gmMessage.getText();
 
   for (const emoji of emojis) {
     const placeholder = emoji.content;
@@ -314,7 +314,12 @@ function getContent(gmMessage: GroupMeMessage) {
   }
   text = codeEmojis(text);
 
-  return text;
+  gmMessage.setAttachments(
+    gmMessage
+      .getAttachments()
+      .filter((a) => !(a instanceof GroupMeEmojiAttachment)),
+  );
+  gmMessage.setText(text);
 }
 
 /** Format GroupMe Message attachments as embeds in a Discord message */

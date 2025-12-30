@@ -9,13 +9,17 @@ import {
 import Command from "./Command.js";
 import * as GroupMeController from "~/handlers/GroupMeController.js";
 import * as DataHandler from "~/handlers/DataHandler.js";
-import { parseDiscordMessage } from "~/utility/MessageParser.js";
+import {
+  fillInlineAttachments,
+  parseDiscordMessage,
+} from "~/utility/MessageParser.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
 import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
 import * as Bot from "~/handlers/BotHandler.js";
 import GroupMeChannel from "~/models/GroupMeChannel.js";
-import { ConfigurationError } from "~/errors.js";
-import { INFO } from "~/utility/LogMessage.js";
+import { ConfigurationError, GroupMeMessageParseError } from "~/errors.js";
+import { ERR, INFO } from "~/utility/LogMessage.js";
+import { getFile } from "~/handlers/GroupMeFileController.js";
 
 export default class GM implements Command {
   /**
@@ -189,46 +193,73 @@ export default class GM implements Command {
     }
 
     for (const message of messages) {
-      const webHook = await this.getWebHook(discordChannel, message);
-      const webHookClient = new WebhookClient({ url: webHook.url });
+      fillInlineAttachments(message);
 
-      const payload = parseDiscordMessage(message);
-      payload.content = payload.content ? payload.content : "";
-      const contentLength = payload.content.length;
+      const messageList = this.splitMessage(message.getText()).map(
+        (m) =>
+          new GroupMeMessage(
+            message.getID(),
+            message.getMember(),
+            message.getGroupID(),
+            message.getCreatedOn(),
+            m,
+            [],
+            message.getIsSystem(),
+          ),
+      );
 
-      let i = 0;
-      for (let j = 1500; j < contentLength; i = j, j += 1500) {
-        /*
-                Check for appropriate breaking points such as whitespace and characters outside of
-                codes delimited with colons. Exclude the opening tag.
-                */
-        const areaCheck = payload.content.substring(i, j);
-        const re = /(?<!^\[<t:.+>\] +)(?<!^\[<t)[:\s][^:\s]+[:\s]*$/;
-        const substring = areaCheck.replace(re, "");
-        j += substring.length - areaCheck.length;
-
-        const tag = /^\[<t:.+>\]\s{3}/;
-        const text = substring.replace(tag, "");
-
-        const subMessage = new GroupMeMessage(
-          message.getID(),
-          message.getMember(),
-          message.getGroupID(),
-          message.getCreatedOn(),
-          text,
-          [],
-          message.getIsSystem(),
+      if (messageList.length === 0) {
+        await this.sendGroupMeMessageToDiscordChannel(message, discordChannel);
+      } else {
+        messageList[messageList.length - 1].setAttachments(
+          message.getAttachments(),
         );
-        const subPayload = parseDiscordMessage(subMessage);
-        await webHookClient.send(subPayload);
+        for (const m of messageList)
+          await this.sendGroupMeMessageToDiscordChannel(m, discordChannel);
       }
-      const finalMessage = payload.content.substring(i);
-      payload.content = finalMessage;
-      await webHookClient.send(payload);
 
       groupMeChannel.setLastMessageID(message.getID());
       DataHandler.setConfig(interaction.channelId, groupMeChannel);
     }
+  }
+
+  private splitMessage(message: string) {
+    const messageList: string[] = [];
+    if (message.length <= 1500) {
+      messageList.push(message);
+      return messageList;
+    }
+
+    let i = 0;
+    do {
+      /*
+        Check for appropriate breaking points such as whitespace and characters outside of
+        codes delimited with colons.
+        */
+      const areaCheck = message.substring(i, i + 1500);
+      const re = /[:\s][^:\s]+[:\s]*$/;
+      const substring = areaCheck.replace(re, "");
+
+      if (substring.length === 0) {
+        i += 1;
+        continue;
+      }
+      messageList.push(substring);
+
+      i += substring.length;
+    } while (i <= message.length);
+
+    return messageList;
+  }
+
+  private async sendGroupMeMessageToDiscordChannel(
+    message: GroupMeMessage,
+    discordChannel: TextBasedChannel,
+  ) {
+    const webHook = await this.getWebHook(discordChannel, message);
+    const webHookClient = new WebhookClient({ url: webHook.url });
+    const payload = parseDiscordMessage(message);
+    await webHookClient.send(payload);
   }
 
   /**
@@ -245,7 +276,7 @@ export default class GM implements Command {
 
     try {
       const avatar = message.getMember().getAvatarURL()
-        ? await GroupMeController.getImage(
+        ? await getFile(
             message.getMember().getAvatarURL() + ".avatar",
           )
         : null;
@@ -259,7 +290,7 @@ export default class GM implements Command {
       else if (webHook.name === message.getMember().getName()) return webHook;
       else return await WebHooksHandler.editWebhook(webHook, message, avatar);
     } catch (err) {
-      console.error(err);
+      if (!(err instanceof GroupMeMessageParseError)) ERR(err);
 
       if (!webHook)
         return await WebHooksHandler.createWebHook(

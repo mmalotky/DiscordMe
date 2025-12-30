@@ -33,30 +33,45 @@ export default class GroupMeMessage {
   }
 
   getID() {
-    return this.id;
+    const id = this.id;
+    return id;
   }
 
   getMember() {
-    return this.member;
+    const member = this.member;
+    return member;
   }
 
   getGroupID() {
-    return this.groupID;
+    const groupID = this.groupID;
+    return groupID;
   }
 
   getCreatedOn() {
-    return this.createdOn;
+    const createdOn = this.createdOn;
+    return createdOn;
   }
 
   getText() {
-    return this.text;
+    const text = this.text ? this.text : "";
+    return text;
+  }
+
+  setText(text: string) {
+    this.text = text;
   }
 
   getAttachments() {
-    return this.attachments;
+    const attachments = [...this.attachments];
+    return attachments;
+  }
+
+  setAttachments(attachments: GroupMeAttachment[]) {
+    this.attachments = attachments;
   }
 
   getIsSystem() {
-    return this.isSystem;
+    const isSystem = this.isSystem;
+    return isSystem;
   }
 }

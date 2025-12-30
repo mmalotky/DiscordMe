@@ -1,7 +1,6 @@
 import GroupMeChannel from "~/models/GroupMeChannel.js";
 import { ERR } from "~/utility/LogMessage.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
-import * as GroupMeFileController from "./GroupMeFileController.js";
 import {
   GroupMeAPIMessage,
   parseGroupMeMessage,
@@ -109,8 +108,4 @@ async function getMessagesAfterID(
     messages.push(await parseGroupMeMessage(data));
   }
   return messages;
-}
-
-export async function getImage(url: string) {
-  return GroupMeFileController.getFile(url);
 }

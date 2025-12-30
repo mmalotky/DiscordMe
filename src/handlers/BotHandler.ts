@@ -68,7 +68,6 @@ function handleCommands() {
  * register new commands, and begin listening for Discord Commands
  * */
 export async function run() {
-  dotenv.config();
   const groupMeToken = process.env.GROUPME_TOKEN;
   if (!groupMeToken) throw new ConfigurationError("GROUPME_TOKEN not found");
   const discordToken = process.env.DISCORD_TOKEN;
@@ -76,9 +75,11 @@ export async function run() {
 
   INFO("Discord Login");
   await getClient().login(discordToken);
+  INFO("Login Complete")
 
   INFO("Setting GroupMe Token");
   GroupMeController.setToken(process.env.GROUPME_TOKEN);
+  INFO("Token Set");
 
   getClient().once(Events.ClientReady, () => {
     INFO("DiscordMe Starting");

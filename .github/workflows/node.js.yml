@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: 25.x
+        node-version: [25.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -56,7 +56,7 @@ jobs:
     strategy:
       matrix:
         # Check minimal supported node range
-        node-version: 22.x
+        node-version: [22.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -68,9 +68,11 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run test
-        run: npm run test
+        run: npm run start
         env:
           GROUPME_TOKEN: ${{ secrets.GROUPME_TOKEN }}
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           SERVER_ID: ${{ secrets.SERVER_ID }}
+          TEST_DISCORD_CHANNEL_ID: ${{ secrets.TEST_DISCORD_CHANNEL_ID }}
+          TEST_GROUPME_GROUP_ID: ${{ secrets.TEST_GROUPME_GROUP_ID }}

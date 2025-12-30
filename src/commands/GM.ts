@@ -15,6 +15,7 @@ import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
 import * as Bot from "~/handlers/BotHandler.js";
 import GroupMeChannel from "~/models/GroupMeChannel.js";
 import { ConfigurationError } from "~/errors.js";
+import { INFO } from "~/utility/LogMessage.js";
 
 export default class GM implements Command {
   /**
@@ -101,6 +102,7 @@ export default class GM implements Command {
   }
 
   async updateNow() {
+    INFO("Updating messages");
     const discordChannelId = process.env.TEST_DISCORD_CHANNEL_ID;
     if (!discordChannelId) {
       throw new ConfigurationError("TEST_DISCORD_CHANNEL_ID not found");

@@ -5,6 +5,7 @@ import * as GroupMeController from "./GroupMeController.js";
 import Command from "~/commands/Command.js";
 import GMCommand from "~/commands/GM.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
+import { ConfigurationError } from "~/errors.js";
 
 let _client: Client | null;
 
@@ -96,16 +97,20 @@ export function run() {
  * */
 export function runAndExit() {
   dotenv.config();
+  const groupMeToken = process.env.GROUPME_TOKEN;
+  if (!groupMeToken) throw new ConfigurationError("GROUPME_TOKEN not found");
+  const discordToken = process.env.DISCORD_TOKEN;
+  if (!discordToken) throw new ConfigurationError("DISCORD_TOKEN not found");
   INFO("Discord Login");
   getClient()
-    .login(process.env.DISCORD_TOKEN)
+    .login(discordToken)
     .then(() => {
       INFO("Setting GroupMe Token");
-      GroupMeController.setToken(process.env.GROUPME_TOKEN);
+      GroupMeController.setToken(groupMeToken);
 
       getClient().once(Events.ClientReady, () => {
         INFO("DiscordMe Starting");
-        CommandsHandler.setToken(process.env.DISCORD_TOKEN);
+        CommandsHandler.setToken(discordToken);
         CommandsHandler.init();
         CommandsHandler.register();
         handleCommands();

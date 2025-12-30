@@ -23,6 +23,7 @@
   "scripts": {
     "watch": "npm-watch",
     "start": "tsx ./src/index.ts",
+    "polish": "npm run lint && npm run format",
     "lint": "eslint --fix .",
     "lint-check": "eslint --fix .",
     "test": "tsx ./src/test.ts",

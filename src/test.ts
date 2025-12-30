@@ -1,9 +1,11 @@
 import * as dotenv from "dotenv";
 import * as Bot from "./handlers/BotHandler.js";
 
-function main() {
+async function main() {
   dotenv.config();
-  Bot.runAndExit();
+  await Bot.runAndExit();
 }
 
-main();
+main()
+  .catch(() => {})
+  .finally(process.exit.bind(process));

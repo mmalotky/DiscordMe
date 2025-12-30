@@ -95,31 +95,24 @@ export function run() {
  * Start up scripts. Acquire Tokens for GroupMe and Discord,
  * register new commands, and begin listening for Discord Commands
  * */
-export function runAndExit() {
+export async function runAndExit() {
   const groupMeToken = process.env.GROUPME_TOKEN;
   if (!groupMeToken) throw new ConfigurationError("GROUPME_TOKEN not found");
   const discordToken = process.env.DISCORD_TOKEN;
   if (!discordToken) throw new ConfigurationError("DISCORD_TOKEN not found");
-  INFO("Discord Login");
-  getClient()
-    .login(discordToken)
-    .then(() => {
-      INFO("Setting GroupMe Token");
-      GroupMeController.setToken(groupMeToken);
 
-      getClient().once(Events.ClientReady, () => {
-        INFO("DiscordMe Starting");
-        CommandsHandler.setToken(discordToken);
-        CommandsHandler.init();
-        CommandsHandler.register();
-        handleCommands();
-        INFO("DiscordMe Online");
-      });
-    })
-    .then(() => {
-      const gm = new GMCommand();
-      gm.updateNow().catch(() => {});
-    })
-    .catch(() => {})
-    .finally(() => process.exit());
+  INFO("Discord Login");
+  await getClient().login(discordToken);
+  INFO("Setting GroupMe Token");
+  GroupMeController.setToken(groupMeToken);
+  getClient().once(Events.ClientReady, () => {
+    INFO("DiscordMe Starting");
+    CommandsHandler.setToken(discordToken);
+    CommandsHandler.init();
+    CommandsHandler.register();
+    handleCommands();
+    INFO("DiscordMe Online");
+  });
+
+  await new GMCommand().updateNow();
 }

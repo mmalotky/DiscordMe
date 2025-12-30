@@ -97,6 +97,7 @@ export function run() {
  * */
 export async function runAndExit() {
   console.log("ergthyju");
+  console.log(`TESTING: ${process.env.TEST_GROUPME_GROUP_NAME}`);
   const groupMeToken = process.env.GROUPME_TOKEN;
   if (!groupMeToken) throw new ConfigurationError("GROUPME_TOKEN not found");
   const discordToken = process.env.DISCORD_TOKEN;

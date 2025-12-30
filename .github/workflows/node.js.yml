@@ -70,11 +70,7 @@ jobs:
       - name: Run test
         run: npm run test
         env:
-          # GROUPME_TOKEN: ${{ secrets.GROUPME_TOKEN }}
-          # DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          # CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          # SERVER_ID: ${{ secrets.SERVER_ID }}
-          GROUPME_TOKEN: test
-          DISCORD_TOKEN: test
-          CLIENT_ID: test
-          SERVER_ID: test
+          GROUPME_TOKEN: ${{ secrets.GROUPME_TOKEN }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          SERVER_ID: ${{ secrets.SERVER_ID }}

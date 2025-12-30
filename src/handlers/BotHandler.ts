@@ -96,7 +96,6 @@ export function run() {
  * register new commands, and begin listening for Discord Commands
  * */
 export function runAndExit() {
-  dotenv.config();
   const groupMeToken = process.env.GROUPME_TOKEN;
   if (!groupMeToken) throw new ConfigurationError("GROUPME_TOKEN not found");
   const discordToken = process.env.DISCORD_TOKEN;

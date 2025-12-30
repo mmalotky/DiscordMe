@@ -2,7 +2,8 @@ import * as dotenv from "dotenv";
 import * as Bot from "./handlers/BotHandler.js";
 
 async function main() {
-  console.log(`TESTING: ${process.env.TEST_GROUPME_GROUP_NAME}`);
+  console.log(process.env.BEEP);
+  console.log(`TESTING: ${process.env.BEEP}`);
   console.log(`TESTING: asdfghjkl`);
   dotenv.config();
   await Bot.runAndExit();

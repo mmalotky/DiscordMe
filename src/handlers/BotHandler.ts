@@ -101,6 +101,8 @@ export async function runAndExit() {
   const discordToken = process.env.DISCORD_TOKEN;
   if (!discordToken) throw new ConfigurationError("DISCORD_TOKEN not found");
 
+  console.log("2e3r4t5yu67kjhgrfe");
+
   INFO("Discord Login");
   await getClient().login(discordToken);
   INFO("Setting GroupMe Token");

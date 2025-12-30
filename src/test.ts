@@ -3,9 +3,13 @@ import * as Bot from "./handlers/BotHandler.js";
 
 async function main() {
   dotenv.config();
+  console.log("sregbbykturyefvgdb");
   await Bot.runAndExit();
 }
 
 main()
   .catch(() => {})
-  .finally(process.exit.bind(process));
+  .finally(() => {
+    console.log("fejkdrgbhkdrgdrgkbdrgdrg");
+    process.exit();
+  });

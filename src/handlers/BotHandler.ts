@@ -1,4 +1,3 @@
-import * as dotenv from "dotenv";
 import { Client, IntentsBitField, Events } from "discord.js";
 import * as CommandsHandler from "./CommandsHandler.js";
 import * as GroupMeController from "./GroupMeController.js";
@@ -67,7 +66,6 @@ function handleCommands() {
  * register new commands, and begin listening for Discord Commands
  * */
 export function run() {
-  dotenv.config();
   INFO("Discord Login");
   getClient()
     .login(process.env.DISCORD_TOKEN)

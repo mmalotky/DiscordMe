@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import * as Bot from "./handlers/BotHandler.js";
 
 async function main() {
-  console.log(process.env.BEEP);
+  console.log(process.env);
   console.log(`TESTING: ${process.env.BEEP}`);
   console.log(`TESTING: asdfghjkl`);
   dotenv.config();

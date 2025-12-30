@@ -5,6 +5,7 @@ async function main() {
   dotenv.config();
   console.log("sregbbykturyefvgdb");
   await Bot.runAndExit();
+  console.log("234r5yuh7");
 }
 
 main()

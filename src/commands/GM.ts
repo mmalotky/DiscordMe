@@ -14,6 +14,7 @@ import GroupMeMessage from "~/models/GroupMeMessage.js";
 import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
 import * as Bot from "~/handlers/BotHandler.js";
 import GroupMeChannel from "~/models/GroupMeChannel.js";
+import { ConfigurationError } from "~/errors.js";
 
 export default class GM implements Command {
   /**
@@ -101,9 +102,13 @@ export default class GM implements Command {
 
   async updateNow() {
     const discordChannelId = process.env.TEST_DISCORD_CHANNEL_ID;
-    if (!discordChannelId) return;
+    if (!discordChannelId) {
+      throw new ConfigurationError("TEST_DISCORD_CHANNEL_ID not found");
+    }
     const groupMeChannelName = process.env.TEST_GROUPME_GROUP_NAME;
-    if (!groupMeChannelName) return;
+    if (!groupMeChannelName) {
+      throw new ConfigurationError("TEST_GROUPME_GROUP_NAME not found");
+    }
     const groupMeChannel = new GroupMeChannel("", groupMeChannelName);
     const discordChannel = Bot.getClient().channels.cache.get(
       discordChannelId,

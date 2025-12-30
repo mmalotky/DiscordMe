@@ -121,49 +121,7 @@ export default class GM implements Command {
     )) as TextChannel | undefined;
     if (!discordChannel)
       throw new ConfigurationError("Failed to get discord channel from id");
-
-    const messages = await GroupMeController.getMessages(groupMeChannel);
-
-    for (const message of messages) {
-      const webHook = await this.getWebHook(discordChannel, message);
-      const webHookClient = new WebhookClient({ url: webHook.url });
-
-      const payload = parseDiscordMessage(message);
-      payload.content = payload.content ? payload.content : "";
-      const contentLength = payload.content.length;
-
-      let i = 0;
-      for (let j = 1500; j < contentLength; i = j, j += 1500) {
-        /*
-                Check for appropriate breaking points such as whitespace and characters outside of
-                codes delimited with colons. Exclude the opening tag.
-                */
-        const areaCheck = payload.content.substring(i, j);
-        const re = /(?<!^\[<t:.+>\] +)(?<!^\[<t)[:\s][^:\s]+[:\s]*$/;
-        const substring = areaCheck.replace(re, "");
-        j += substring.length - areaCheck.length;
-
-        const tag = /^\[<t:.+>\]\s{3}/;
-        const text = substring.replace(tag, "");
-
-        const subMessage = new GroupMeMessage(
-          message.getID(),
-          message.getMember(),
-          message.getGroupID(),
-          message.getCreatedOn(),
-          text,
-          [],
-          message.getIsSystem(),
-        );
-        const subPayload = parseDiscordMessage(subMessage);
-        await webHookClient.send(subPayload);
-      }
-      const finalMessage = payload.content.substring(i);
-      payload.content = finalMessage;
-      await webHookClient.send(payload);
-
-      groupMeChannel.setLastMessageID(message.getID());
-    }
+    await this.sendMessages(groupMeChannel, discordChannel);
   }
 
   /**
@@ -177,19 +135,29 @@ export default class GM implements Command {
     const groupMeChannel = DataHandler.getConfig(interaction.channelId);
     const discordChannel = interaction.channel;
     if (!groupMeChannel || !discordChannel) return;
+    await this.sendMessages(groupMeChannel, discordChannel, interaction);
+  }
+
+  private async sendMessages(
+    groupMeChannel:GroupMeChannel, 
+    discordChannel:TextBasedChannel,
+    interaction?:ChatInputCommandInteraction
+  ) {
     const messages = await GroupMeController.getMessages(groupMeChannel);
 
-    if (messages.length === 0) {
-      await interaction.reply({
-        content: "No new messages",
-        ephemeral: true,
-      });
-    } else {
-      await interaction.reply({
-        content: "Loading up messages",
-        ephemeral: true,
-      });
-      await interaction.deleteReply();
+    if(interaction) {
+      if (messages.length === 0) {
+        await interaction.reply({
+          content: "No new messages",
+          ephemeral: true,
+        });
+      } else {
+        await interaction.reply({
+          content: "Loading up messages",
+          ephemeral: true,
+        });
+        await interaction.deleteReply();
+      }
     }
 
     for (const message of messages) {
@@ -219,7 +187,7 @@ export default class GM implements Command {
       }
 
       groupMeChannel.setLastMessageID(message.getID());
-      DataHandler.setConfig(interaction.channelId, groupMeChannel);
+      if(interaction) DataHandler.setConfig(interaction.channelId, groupMeChannel);
     }
   }
 

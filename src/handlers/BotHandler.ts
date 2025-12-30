@@ -3,11 +3,12 @@ import { Client, IntentsBitField, Events } from "discord.js";
 import * as CommandsHandler from "./CommandsHandler.js";
 import * as GroupMeController from "./GroupMeController.js";
 import Command from "~/commands/Command.js";
+import GMCommand from "~/commands/GM.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
 
 let _client: Client | null;
 
-function getClient(): Client {
+export function getClient(): Client {
   return _client
     ? _client
     : (_client = new Client({
@@ -84,5 +85,37 @@ export function run() {
         INFO("DiscordMe Online");
       });
     })
-    .catch(() => {});
+    .then()
+    .catch(() => {})
+    .finally(() => process.exit());
+}
+
+/**
+ * Start up scripts. Acquire Tokens for GroupMe and Discord,
+ * register new commands, and begin listening for Discord Commands
+ * */
+export function runAndExit() {
+  dotenv.config();
+  INFO("Discord Login");
+  getClient()
+    .login(process.env.DISCORD_TOKEN)
+    .then(() => {
+      INFO("Setting GroupMe Token");
+      GroupMeController.setToken(process.env.GROUPME_TOKEN);
+
+      getClient().once(Events.ClientReady, () => {
+        INFO("DiscordMe Starting");
+        CommandsHandler.setToken(process.env.DISCORD_TOKEN);
+        CommandsHandler.init();
+        CommandsHandler.register();
+        handleCommands();
+        INFO("DiscordMe Online");
+      });
+    })
+    .then(() => {
+      const gm = new GMCommand();
+      gm.updateNow().catch(() => {});
+    })
+    .catch(() => {})
+    .finally(() => process.exit());
 }

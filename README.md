@@ -16,7 +16,7 @@ Libraries
 - eslint
 - Prettier
 
-VSCode Extensions
+Recommended VSCode Extensions
 
 - dbaeumer.vscode-eslint
 - esbenp.prettier-vscode

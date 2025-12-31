@@ -6,6 +6,7 @@ import Command from "~/commands/Command.js";
 import GMCommand from "~/commands/GM.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
 import { ConfigurationError } from "~/errors.js";
+import { Env } from "~/utility.js";
 
 function syncHandleCommands() {
   Discord.Client.get().on(DiscordJs.Events.InteractionCreate, (interaction) => {
@@ -57,22 +58,22 @@ async function handleCommands(
  * register new commands, and begin listening for Discord Commands
  * */
 export async function run() {
-  const groupMeToken = process.env.GROUPME_TOKEN;
-  if (!groupMeToken) throw new ConfigurationError("GROUPME_TOKEN not found");
-  const discordToken = process.env.DISCORD_TOKEN;
-  if (!discordToken) throw new ConfigurationError("DISCORD_TOKEN not found");
+  Env.init();
+
+  const groupMeToken = Env.getRequired(Env.REQUIRED.GROUPME_TOKEN);
+  const discordToken = Env.getRequired(Env.REQUIRED.DISCORD_TOKEN);
 
   INFO("Discord Login");
   await Discord.Client.get().login(discordToken);
   INFO("Login Complete");
 
   INFO("Setting GroupMe Token");
-  GroupMeController.setToken(process.env.GROUPME_TOKEN);
+  GroupMeController.setToken(groupMeToken);
   INFO("Token Set");
 
   Discord.Client.get().once(DiscordJs.Events.ClientReady, () => {
     INFO("DiscordMe Starting");
-    CommandsHandler.setToken(process.env.DISCORD_TOKEN);
+    CommandsHandler.setToken(discordToken);
     CommandsHandler.init();
     CommandsHandler.register().catch((err) => {
       throw new ConfigurationError(`Failed to register commands:\n\n${err}`);
@@ -81,5 +82,5 @@ export async function run() {
     INFO("DiscordMe Online");
   });
 
-  if (process.env.CI) await new GMCommand().updateNow();
+  if (Env.getOptional(Env.OPTIONAL.CI)) await new GMCommand().updateNow();
 }

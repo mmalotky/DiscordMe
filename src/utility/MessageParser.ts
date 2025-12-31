@@ -19,6 +19,7 @@ import { emojiMap } from "./GroupMeEmojiMap.js";
 import { GroupMeMessageParseError } from "~/errors.js";
 import * as GroupMeFileController from "~/handlers/GroupMeFileController.js";
 import { codeEmojis } from "./DiscordEmojiMap.js";
+import { Env } from "~/utility.js";
 
 /**
  * JSON message data received from GroupMe API
@@ -210,8 +211,11 @@ async function parseFileAttachment(
   json: GroupMeAPIMessage,
   raw: GroupMeAPIAttachment,
 ): Promise<GroupMeAttachment> {
+  Env.init();
+
   const fileId = raw.file_id;
-  const fileURL = `https://file.groupme.com/v1/${json.group_id}/files/${fileId}?token=${process.env.GROUPME_TOKEN}`;
+  const token = Env.getRequired(Env.REQUIRED.GROUPME_TOKEN);
+  const fileURL = `https://file.groupme.com/v1/${json.group_id}/files/${fileId}?token=${token}`;
   const fileData = await GroupMeFileController.getFile(fileURL);
   const fileName = await GroupMeFileController.getFileName(fileURL);
 

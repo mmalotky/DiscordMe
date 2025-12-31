@@ -108,11 +108,16 @@ export default class GM implements Command {
     if (!groupMeChannelId) {
       throw new ConfigurationError("TEST_GROUPME_GROUP_ID not found");
     }
+
     const groupMeChannel = new GroupMeChannel(groupMeChannelId, "TEST");
     const discordChannel =
       await Discord.Client.get().channels.fetch(discordChannelId);
+
     if (!discordChannel)
       throw new ConfigurationError("Failed to get discord channel from id");
+    if (!discordChannel.isTextBased())
+      throw new ConfigurationError("Discord Channel is not text based");
+
     await this.sendMessages(groupMeChannel, discordChannel);
   }
 

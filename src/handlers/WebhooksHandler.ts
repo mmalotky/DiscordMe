@@ -1,5 +1,5 @@
-import { TextBasedChannel, TextChannel, Webhook } from "discord.js";
 import { ConfigurationError } from "~/errors.js";
+import * as DiscordJs from "discord.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
 
 /** Manage Discord Webhooks */
@@ -11,10 +11,10 @@ import GroupMeMessage from "~/models/GroupMeMessage.js";
  * @returns webhook
  */
 export async function editWebhook(
-  webHook: Webhook,
+  webHook: DiscordJs.Webhook,
   message: GroupMeMessage,
   avatarBuffer: Buffer | null,
-): Promise<Webhook> {
+): Promise<DiscordJs.Webhook> {
   const name = message.getMember().getName();
   const avatar = avatarBuffer
     ? avatarBuffer
@@ -31,9 +31,9 @@ export async function editWebhook(
  * @returns Webhook attached to the application id
  */
 export async function getWebhookByChannel(
-  channel: TextBasedChannel,
-): Promise<Webhook> {
-  if (!channel || !(channel instanceof TextChannel)) {
+  channel: DiscordJs.TextBasedChannel,
+): Promise<DiscordJs.Webhook> {
+  if (!channel || !(channel instanceof DiscordJs.TextChannel)) {
     throw new ConfigurationError(`Channel not found.`);
   }
   const applicationId = channel.client.application.id;
@@ -54,11 +54,11 @@ export async function getWebhookByChannel(
  * @throws ConfigurationError
  */
 export async function createWebHook(
-  channel: TextBasedChannel,
+  channel: DiscordJs.TextBasedChannel,
   message: GroupMeMessage,
   avatarBuffer: Buffer | null,
-): Promise<Webhook> {
-  if (!channel || !(channel instanceof TextChannel)) {
+): Promise<DiscordJs.Webhook> {
+  if (!channel || !(channel instanceof DiscordJs.TextChannel)) {
     throw new ConfigurationError(`Channel not found.`);
   }
 

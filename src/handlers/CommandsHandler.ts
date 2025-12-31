@@ -4,24 +4,22 @@
  */
 
 import { INFO, ERR } from "~/utility/LogMessage.js";
-import {
-  REST,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
-  Routes,
-} from "discord.js";
+import * as DiscordJs from "discord.js";
 import Command from "~/commands/Command.js";
 import { default as GMCommands } from "~/commands/GM.js";
 import { ConfigurationError } from "~/errors.js";
 
 const commands: Command[] = [];
-const commandsJSON: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
-const rest = new REST({ version: "10" });
+const commandsJSON: DiscordJs.RESTPostAPIChatInputApplicationCommandsJSONBody[] =
+  [];
+const rest = new DiscordJs.REST({ version: "10" });
 
 export function setToken(token: string | undefined) {
   if (token) {
     rest.setToken(token);
   } else ERR("No discord token found");
 }
+
 /**
  * Initializes the handler
  */
@@ -48,7 +46,7 @@ export async function register() {
 
   try {
     await rest.put(
-      Routes.applicationGuildCommands(
+      DiscordJs.Routes.applicationGuildCommands(
         process.env.CLIENT_ID,
         process.env.SERVER_ID,
       ),

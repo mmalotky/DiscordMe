@@ -1,34 +1,14 @@
-import {
-  Client,
-  IntentsBitField,
-  Events,
-  Interaction,
-  CacheType,
-} from "discord.js";
 import * as CommandsHandler from "./CommandsHandler.js";
+import * as Discord from "~/discord.js";
+import * as DiscordJs from "discord.js";
 import * as GroupMeController from "./GroupMeController.js";
 import Command from "~/commands/Command.js";
 import GMCommand from "~/commands/GM.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
 import { ConfigurationError } from "~/errors.js";
 
-let _client: Client | null;
-
-export function getClient(): Client {
-  return _client
-    ? _client
-    : (_client = new Client({
-        intents: [
-          IntentsBitField.Flags.Guilds,
-          IntentsBitField.Flags.GuildMembers,
-          IntentsBitField.Flags.GuildMessages,
-          IntentsBitField.Flags.MessageContent,
-        ],
-      }));
-}
-
 function syncHandleCommands() {
-  getClient().on(Events.InteractionCreate, (interaction) => {
+  Discord.Client.get().on(DiscordJs.Events.InteractionCreate, (interaction) => {
     handleCommands(interaction).catch((e) => {
       throw e;
     });
@@ -40,7 +20,9 @@ function syncHandleCommands() {
  * command according to the interaction parameters, sends an error message to
  * Discord if the operation fails.
  */
-async function handleCommands(interaction: Interaction<CacheType>) {
+async function handleCommands(
+  interaction: DiscordJs.Interaction<DiscordJs.CacheType>,
+) {
   if (!interaction.isChatInputCommand()) return;
   const command = CommandsHandler.get().filter(
     (c: Command) => c.getData().name === interaction.commandName,
@@ -81,14 +63,14 @@ export async function run() {
   if (!discordToken) throw new ConfigurationError("DISCORD_TOKEN not found");
 
   INFO("Discord Login");
-  await getClient().login(discordToken);
+  await Discord.Client.get().login(discordToken);
   INFO("Login Complete");
 
   INFO("Setting GroupMe Token");
   GroupMeController.setToken(process.env.GROUPME_TOKEN);
   INFO("Token Set");
 
-  getClient().once(Events.ClientReady, () => {
+  Discord.Client.get().once(DiscordJs.Events.ClientReady, () => {
     INFO("DiscordMe Starting");
     CommandsHandler.setToken(process.env.DISCORD_TOKEN);
     CommandsHandler.init();

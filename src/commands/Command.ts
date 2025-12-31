@@ -1,9 +1,4 @@
-import {
-  CacheType,
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-  SlashCommandSubcommandsOnlyBuilder,
-} from "discord.js";
+import * as DiscordJS from "discord.js";
 
 export default interface Command {
   /**
@@ -12,8 +7,10 @@ export default interface Command {
    * execute runs an asynchronous response to a client iteration
    */
 
-  getData: () => SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder;
+  getData: () =>
+    | DiscordJS.SlashCommandBuilder
+    | DiscordJS.SlashCommandSubcommandsOnlyBuilder;
   execute: (
-    interaction: ChatInputCommandInteraction<CacheType>,
+    interaction: DiscordJS.ChatInputCommandInteraction<DiscordJS.CacheType>,
   ) => Promise<void>;
 }

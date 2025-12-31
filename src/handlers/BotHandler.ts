@@ -2,8 +2,6 @@ import * as CommandsHandler from "./CommandsHandler.js";
 import * as Discord from "~/discord.js";
 import * as DiscordJs from "discord.js";
 import * as GroupMeController from "./GroupMeController.js";
-import Command from "~/commands/Command.js";
-import GMCommand from "~/commands/GM.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
 import { ConfigurationError } from "~/errors.js";
 import { Env } from "~/utility.js";
@@ -26,7 +24,8 @@ async function handleCommands(
 ) {
   if (!interaction.isChatInputCommand()) return;
   const command = CommandsHandler.get().filter(
-    (c: Command) => c.getData().name === interaction.commandName,
+    (c: Discord.Commands.ICommand) =>
+      c.getData().name === interaction.commandName,
   )[0];
 
   if (!command) {
@@ -82,5 +81,5 @@ export async function run() {
     INFO("DiscordMe Online");
   });
 
-  if (Env.getOptional(Env.OPTIONAL.CI)) await new GMCommand().updateNow();
+  if (process.env.CI) await new Discord.Commands.GM().updateNow();
 }

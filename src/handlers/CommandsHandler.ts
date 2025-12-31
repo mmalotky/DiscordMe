@@ -4,12 +4,11 @@
  */
 
 import { INFO, ERR } from "~/utility/LogMessage.js";
+import * as Discord from "~/discord.js";
 import * as DiscordJs from "discord.js";
-import Command from "~/commands/Command.js";
-import { default as GMCommands } from "~/commands/GM.js";
 import { Env } from "~/utility.js";
 
-const commands: Command[] = [];
+const commands: Discord.Commands.ICommand[] = [];
 const commandsJSON: DiscordJs.RESTPostAPIChatInputApplicationCommandsJSONBody[] =
   [];
 const rest = new DiscordJs.REST({ version: "10" });
@@ -25,7 +24,7 @@ export function setToken(token: string | undefined) {
  */
 export function init() {
   INFO("Initializing ");
-  const gm = new GMCommands();
+  const gm = new Discord.Commands.GM();
   commands.length = 0;
   commands.push(gm);
   commandsJSON.length = 0;
@@ -33,7 +32,7 @@ export function init() {
 }
 
 /** Returns the list of commands */
-export function get(): readonly Command[] {
+export function get(): readonly Discord.Commands.ICommand[] {
   return commands;
 }
 

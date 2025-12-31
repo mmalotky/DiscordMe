@@ -1,6 +1,6 @@
 import * as Discord from "~/discord.js";
 import * as DiscordJs from "discord.js";
-import Command from "./Command.js";
+import type { ICommand } from "./ICommand.js";
 import * as GroupMeController from "~/handlers/GroupMeController.js";
 import * as DataHandler from "~/handlers/DataHandler.js";
 import {
@@ -15,7 +15,7 @@ import { ERR, INFO } from "~/utility/LogMessage.js";
 import { getFile } from "~/handlers/GroupMeFileController.js";
 import { Env } from "~/utility.js";
 
-export default class GM implements Command {
+export class GM implements ICommand {
   /**
    * GM Command class. Allows bot configuration within discord servers
    * and pulling GroupMe chat history into the configured Channel.

@@ -18,6 +18,7 @@ import { WARN } from "./LogMessage.js";
 import { emojiMap } from "./GroupMeEmojiMap.js";
 import { GroupMeMessageParseError } from "~/errors.js";
 import * as GroupMeFileController from "~/handlers/GroupMeFileController.js";
+import { Env } from "~/utility.js";
 import * as Discord from "~/discord.js";
 
 /**

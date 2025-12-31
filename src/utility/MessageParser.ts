@@ -1,5 +1,4 @@
-import { APIEmbed, AttachmentBuilder, MessageCreateOptions } from "discord.js";
-
+import * as DiscordJs from "discord.js";
 import {
   GroupMeAttachment,
   GroupMeEmojiAttachment,
@@ -267,13 +266,13 @@ function parseEventAttachment(raw: GroupMeAPIAttachment): GroupMeAttachment {
 /** Convert GroupMeMessage Model into a Discord Message */
 export function parseDiscordMessage(
   gmMessage: GroupMeMessage,
-): MessageCreateOptions {
+): DiscordJs.MessageCreateOptions {
   const tag = getTag(gmMessage);
   const content = gmMessage.getText();
   const embeds = getEmbeds(gmMessage);
   const files = getFiles(gmMessage);
 
-  const message: MessageCreateOptions = {
+  const message: DiscordJs.MessageCreateOptions = {
     content: tag + content,
     embeds: embeds,
     files: files,
@@ -325,11 +324,11 @@ export function fillInlineAttachments(gmMessage: GroupMeMessage) {
 /** Format GroupMe Message attachments as embeds in a Discord message */
 function getEmbeds(gmMessage: GroupMeMessage) {
   const attachments: GroupMeAttachment[] = gmMessage.getAttachments();
-  const embeds: APIEmbed[] = [];
+  const embeds: DiscordJs.APIEmbed[] = [];
 
-  const videos: APIEmbed[] = attachments
+  const videos: DiscordJs.APIEmbed[] = attachments
     .filter((a) => a instanceof GroupMeVideoAttachment)
-    .map((a): APIEmbed => {
+    .map((a): DiscordJs.APIEmbed => {
       return {
         video: {
           url: a.content,
@@ -342,20 +341,20 @@ function getEmbeds(gmMessage: GroupMeMessage) {
   return embeds;
 }
 
-function getFiles(gmMessage: GroupMeMessage): AttachmentBuilder[] {
+function getFiles(gmMessage: GroupMeMessage): DiscordJs.AttachmentBuilder[] {
   const attachments: GroupMeAttachment[] = gmMessage.getAttachments();
-  const files: AttachmentBuilder[] = [];
+  const files: DiscordJs.AttachmentBuilder[] = [];
 
   const images = attachments
     .filter((a) => a instanceof GroupMeImageAttachment)
     .map((img) => {
-      return new AttachmentBuilder(img.data).setName(img.name);
+      return new DiscordJs.AttachmentBuilder(img.data).setName(img.name);
     });
 
   const fileAttachments = attachments
     .filter((a) => a instanceof GroupMeFileAttachment)
     .map((file) => {
-      return new AttachmentBuilder(file.data).setName(file.name);
+      return new DiscordJs.AttachmentBuilder(file.data).setName(file.name);
     });
 
   files.push(...images, ...fileAttachments);

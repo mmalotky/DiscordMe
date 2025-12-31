@@ -1,11 +1,5 @@
-import {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-  TextBasedChannel,
-  TextChannel,
-  Webhook,
-  WebhookClient,
-} from "discord.js";
+import * as Discord from "~/discord.js";
+import * as DiscordJs from "discord.js";
 import Command from "./Command.js";
 import * as GroupMeController from "~/handlers/GroupMeController.js";
 import * as DataHandler from "~/handlers/DataHandler.js";
@@ -15,7 +9,6 @@ import {
 } from "~/utility/MessageParser.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
 import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
-import * as Bot from "~/handlers/BotHandler.js";
 import GroupMeChannel from "~/models/GroupMeChannel.js";
 import { ConfigurationError, GroupMeMessageParseError } from "~/errors.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
@@ -33,7 +26,7 @@ export default class GM implements Command {
    * Metadata for the Discord Command
    * Builds the discord slash command and any subcommands
    * */
-  private data = new SlashCommandBuilder()
+  private data = new DiscordJs.SlashCommandBuilder()
     .setName("gm")
     .setDescription("GroupMe Bot controller")
     .addSubcommand((sub) => {
@@ -78,7 +71,7 @@ export default class GM implements Command {
    * Interface implementation of executing the slash command.
    * Selects from the list of subcommands.
    */
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: DiscordJs.ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
     switch (subcommand) {
       case "config":
@@ -116,9 +109,8 @@ export default class GM implements Command {
       throw new ConfigurationError("TEST_GROUPME_GROUP_ID not found");
     }
     const groupMeChannel = new GroupMeChannel(groupMeChannelId, "TEST");
-    const discordChannel = (await Bot.getClient().channels.fetch(
-      discordChannelId,
-    )) as TextChannel | undefined;
+    const discordChannel =
+      await Discord.Client.get().channels.fetch(discordChannelId);
     if (!discordChannel)
       throw new ConfigurationError("Failed to get discord channel from id");
     await this.sendMessages(groupMeChannel, discordChannel);
@@ -131,7 +123,7 @@ export default class GM implements Command {
    * Creates Webhooks to emulate different GroupMe Users
    * @param interaction -
    * */
-  async update(interaction: ChatInputCommandInteraction) {
+  async update(interaction: DiscordJs.ChatInputCommandInteraction) {
     const groupMeChannel = DataHandler.getConfig(interaction.channelId);
     const discordChannel = interaction.channel;
     if (!groupMeChannel || !discordChannel) return;
@@ -140,8 +132,8 @@ export default class GM implements Command {
 
   private async sendMessages(
     groupMeChannel: GroupMeChannel,
-    discordChannel: TextBasedChannel,
-    interaction?: ChatInputCommandInteraction,
+    discordChannel: DiscordJs.TextBasedChannel,
+    interaction?: DiscordJs.ChatInputCommandInteraction,
   ) {
     const messages = await GroupMeController.getMessages(groupMeChannel);
 
@@ -228,10 +220,10 @@ export default class GM implements Command {
 
   private async sendGroupMeMessageToDiscordChannel(
     message: GroupMeMessage,
-    discordChannel: TextBasedChannel,
+    discordChannel: DiscordJs.TextBasedChannel,
   ) {
     const webHook = await this.getWebHook(discordChannel, message);
-    const webHookClient = new WebhookClient({ url: webHook.url });
+    const webHookClient = new DiscordJs.WebhookClient({ url: webHook.url });
     const payload = parseDiscordMessage(message);
     await webHookClient.send(payload);
   }
@@ -243,9 +235,9 @@ export default class GM implements Command {
    * @returns Promise<Webhook>
    */
   private async getWebHook(
-    discordChannel: TextBasedChannel,
+    discordChannel: DiscordJs.TextBasedChannel,
     message: GroupMeMessage,
-  ): Promise<Webhook> {
+  ): Promise<DiscordJs.Webhook> {
     const webHook = await WebHooksHandler.getWebhookByChannel(discordChannel);
 
     try {
@@ -283,7 +275,7 @@ export default class GM implements Command {
    * configuration (see setConfig).
    * @param interaction -
    * */
-  private async config(interaction: ChatInputCommandInteraction) {
+  private async config(interaction: DiscordJs.ChatInputCommandInteraction) {
     const channel = await this.getChannel(interaction);
     if (!channel) return;
 
@@ -308,7 +300,7 @@ export default class GM implements Command {
    * Updates an existing configuration for a discord channel.
    * @param interaction -
    */
-  private async setConfig(interaction: ChatInputCommandInteraction) {
+  private async setConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
     const channel = await this.getChannel(interaction);
     if (!channel) return;
 
@@ -333,7 +325,7 @@ export default class GM implements Command {
    * Sends the current GroupMe Channel configured to a Discord Channel
    * @param interaction -
    */
-  private async getConfig(interaction: ChatInputCommandInteraction) {
+  private async getConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
     const channel = DataHandler.getConfig(interaction.channelId);
 
     if (channel) {
@@ -358,7 +350,7 @@ export default class GM implements Command {
    * @param interaction -
    * @returns List of available channel names
    */
-  private async getChannel(interaction: ChatInputCommandInteraction) {
+  private async getChannel(interaction: DiscordJs.ChatInputCommandInteraction) {
     const channelName = interaction.options.getString("channel", true);
     const response = await GroupMeController.getChannelByName(channelName);
 

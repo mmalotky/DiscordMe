@@ -2673,6 +2673,6 @@ const regex: RegExp =
 // Posted by lucas, modified by community. See post 'Timeline' for change history
 // Retrieved 2025-12-17, License - CC BY-SA 4.0
 
-export function codeEmojis(text: string): string {
+export function parse(text: string): string {
   return text.replace(regex, (value) => discordEmojiMap.get(value) || value);
 }

@@ -18,7 +18,7 @@ import { WARN } from "./LogMessage.js";
 import { emojiMap } from "./GroupMeEmojiMap.js";
 import { GroupMeMessageParseError } from "~/errors.js";
 import * as GroupMeFileController from "~/handlers/GroupMeFileController.js";
-import { codeEmojis } from "./DiscordEmojiMap.js";
+import * as Discord from "~/discord.js";
 
 /**
  * JSON message data received from GroupMe API
@@ -311,7 +311,7 @@ export function fillInlineAttachments(gmMessage: GroupMeMessage) {
       text = text.replace(placeholder, emojiID);
     }
   }
-  text = codeEmojis(text);
+  text = Discord.EmojiMap.parse(text);
 
   gmMessage.setAttachments(
     gmMessage

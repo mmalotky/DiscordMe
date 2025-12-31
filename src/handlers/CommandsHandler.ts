@@ -11,6 +11,7 @@ import {
 } from "discord.js";
 import Command from "~/commands/Command.js";
 import { default as GMCommands } from "~/commands/GM.js";
+import { ConfigurationError } from "~/errors.js";
 
 const commands: Command[] = [];
 const commandsJSON: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
@@ -39,23 +40,23 @@ export function get(): readonly Command[] {
 }
 
 /** Sends list of commands to Discord. Should be used during start up. */
-export function register() {
-  try {
-    INFO("Registering commands...");
+export async function register() {
+  INFO("Registering commands...");
 
-    if (process.env.CLIENT_ID && process.env.SERVER_ID) {
-      rest
-        .put(
-          Routes.applicationGuildCommands(
-            process.env.CLIENT_ID,
-            process.env.SERVER_ID,
-          ),
-          { body: commandsJSON },
-        )
-        .then(() => INFO("...Commands Registered"))
-        .catch(() => {});
-    } else ERR("Client/ Server ID's not Found");
+  if (!process.env.CLIENT_ID || !process.env.SERVER_ID)
+    throw new ConfigurationError("Missing environment variable.");
+
+  try {
+    await rest.put(
+      Routes.applicationGuildCommands(
+        process.env.CLIENT_ID,
+        process.env.SERVER_ID,
+      ),
+      { body: commandsJSON },
+    );
+    INFO("...Commands Registered");
   } catch (err) {
-    ERR(err);
+    ERR("Client/ Server ID's not Found");
+    throw err;
   }
 }

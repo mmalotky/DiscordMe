@@ -57,8 +57,9 @@ async function getPageChannels(page: number) {
     const data: GroupMeAPIMessage[] = json.response;
     const channels = data.map((ch) => new GroupMeChannel(ch.id, ch.name));
     return channels;
-  } catch (e) {
-    ERR(e);
+  } catch (err) {
+    ERR(err);
+    throw err;
   }
 }
 

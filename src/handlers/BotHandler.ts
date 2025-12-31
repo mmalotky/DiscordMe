@@ -1,4 +1,10 @@
-import { Client, IntentsBitField, Events } from "discord.js";
+import {
+  Client,
+  IntentsBitField,
+  Events,
+  Interaction,
+  CacheType,
+} from "discord.js";
 import * as CommandsHandler from "./CommandsHandler.js";
 import * as GroupMeController from "./GroupMeController.js";
 import Command from "~/commands/Command.js";
@@ -21,48 +27,49 @@ export function getClient(): Client {
       }));
 }
 
+function syncHandleCommands() {
+  getClient().on(Events.InteractionCreate, (interaction) => {
+    handleCommands(interaction).catch((e) => {
+      throw e;
+    });
+  });
+}
+
 /**
  * Listen for Discord commands. Look up registered command, then execute the
  * command according to the interaction parameters, sends an error message to
  * Discord if the operation fails.
  */
-function handleCommands() {
-  getClient().on(Events.InteractionCreate, (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
-    const command = CommandsHandler.get().filter(
-      (c: Command) => c.getData().name === interaction.commandName,
-    )[0];
+async function handleCommands(interaction: Interaction<CacheType>) {
+  if (!interaction.isChatInputCommand()) return;
+  const command = CommandsHandler.get().filter(
+    (c: Command) => c.getData().name === interaction.commandName,
+  )[0];
 
-    if (!command) {
-      ERR(`No command matching ${interaction.commandName} was found.`);
-      return;
+  if (!command) {
+    ERR(`No command matching ${interaction.commandName} was found.`);
+    return;
+  }
+
+  try {
+    await command.execute(interaction);
+  } catch (err) {
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({
+        content: "There was an error while executing this command!",
+        ephemeral: true,
+      });
+    } else {
+      await interaction.reply({
+        content: "There was an error while executing this command!",
+        ephemeral: true,
+      });
     }
 
-    command
-      .execute(interaction)
-      .then(() => {})
-      .catch((error) => {
-        ERR(`${error}`);
-        if (interaction.replied || interaction.deferred) {
-          interaction
-            .followUp({
-              content: "There was an error while executing this command!",
-              ephemeral: true,
-            })
-            .then(() => {})
-            .catch(() => {});
-        } else {
-          interaction
-            .reply({
-              content: "There was an error while executing this command!",
-              ephemeral: true,
-            })
-            .then(() => {})
-            .catch(() => {});
-        }
-      });
-  });
+    throw err;
+  }
 }
+
 /**
  * Start up scripts. Acquire Tokens for GroupMe and Discord,
  * register new commands, and begin listening for Discord Commands
@@ -85,8 +92,10 @@ export async function run() {
     INFO("DiscordMe Starting");
     CommandsHandler.setToken(process.env.DISCORD_TOKEN);
     CommandsHandler.init();
-    CommandsHandler.register();
-    handleCommands();
+    CommandsHandler.register().catch((err) => {
+      throw new ConfigurationError(`Failed to register commands:\n\n${err}`);
+    });
+    syncHandleCommands();
     INFO("DiscordMe Online");
   });
 

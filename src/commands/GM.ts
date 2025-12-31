@@ -206,7 +206,7 @@ export default class GM implements Command {
         codes delimited with colons.
         */
       const areaCheck = message.substring(i, i + 1500);
-      if(areaCheck.length === 0) {
+      if (areaCheck.length === 0) {
         i += 1;
         continue;
       }
@@ -217,8 +217,7 @@ export default class GM implements Command {
       if (substring.length === 0) {
         messageList.push(areaCheck);
         i += areaCheck.length;
-      }
-      else {
+      } else {
         messageList.push(substring);
         i += substring.length;
       }

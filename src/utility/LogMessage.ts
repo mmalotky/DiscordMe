@@ -7,8 +7,11 @@ export function ERR(message: unknown) {
   console.error(`[ERR] ${m}`);
 }
 
-export function INFO(message: string) {
-  console.info(`[INFO] ${message}`);
+export function INFO(message: unknown) {
+  const m = (message as Error).message
+    ? (message as Error).message
+    : (message as string);
+  console.info(`[INFO] ${m}`);
 }
 
 export function WARN(message: unknown) {

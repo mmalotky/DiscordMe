@@ -13,6 +13,7 @@ import GroupMeChannel from "~/models/GroupMeChannel.js";
 import { ConfigurationError, GroupMeMessageParseError } from "~/errors.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
 import { getFile } from "~/handlers/GroupMeFileController.js";
+import { Env } from "~/utility.js";
 
 export default class GM implements Command {
   /**
@@ -99,26 +100,23 @@ export default class GM implements Command {
   }
 
   async updateNow() {
+    Env.init();
+
     INFO("Updating messages");
-    const discordChannelId = process.env.TEST_DISCORD_CHANNEL_ID;
-    if (!discordChannelId) {
-      throw new ConfigurationError("TEST_DISCORD_CHANNEL_ID not found");
-    }
-    const groupMeChannelId = process.env.TEST_GROUPME_GROUP_ID;
-    if (!groupMeChannelId) {
-      throw new ConfigurationError("TEST_GROUPME_GROUP_ID not found");
-    }
 
-    const groupMeChannel = new GroupMeChannel(groupMeChannelId, "TEST");
-    const discordChannel =
-      await Discord.Client.get().channels.fetch(discordChannelId);
+    const groupMeGroupId = Env.getRequired(Env.OPTIONAL.TEST_GROUPME_GROUP_ID);
+    const groupMeGroup = new GroupMeChannel(groupMeGroupId, "TEST");
 
+    const discordChannelId = Env.getRequired(
+      Env.OPTIONAL.TEST_DISCORD_CHANNEL_ID,
+    );
+    const discordChannel = (await Discord.Client.get().channels.fetch(
+      discordChannelId,
+    )) as DiscordJs.TextChannel | undefined;
     if (!discordChannel)
       throw new ConfigurationError("Failed to get discord channel from id");
-    if (!discordChannel.isTextBased())
-      throw new ConfigurationError("Discord Channel is not text based");
 
-    await this.sendMessages(groupMeChannel, discordChannel);
+    await this.sendMessages(groupMeGroup, discordChannel);
   }
 
   /**

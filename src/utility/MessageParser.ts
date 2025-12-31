@@ -210,8 +210,11 @@ async function parseFileAttachment(
   json: GroupMeAPIMessage,
   raw: GroupMeAPIAttachment,
 ): Promise<GroupMeAttachment> {
+  Env.init();
+
   const fileId = raw.file_id;
-  const fileURL = `https://file.groupme.com/v1/${json.group_id}/files/${fileId}?token=${process.env.GROUPME_TOKEN}`;
+  const token = Env.getRequired(Env.REQUIRED.GROUPME_TOKEN);
+  const fileURL = `https://file.groupme.com/v1/${json.group_id}/files/${fileId}?token=${token}`;
   const fileData = await GroupMeFileController.getFile(fileURL);
   const fileName = await GroupMeFileController.getFileName(fileURL);
 

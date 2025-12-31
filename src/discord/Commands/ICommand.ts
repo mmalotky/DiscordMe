@@ -1,6 +1,6 @@
 import * as DiscordJS from "discord.js";
 
-export default interface Command {
+export interface ICommand {
   /**
    * Discord Command Interface.
    * getData returns a command's metadata and descriptors

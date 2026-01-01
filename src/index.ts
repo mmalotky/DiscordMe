@@ -1,8 +1,12 @@
-import * as Bot from "~/handlers/BotHandler.js";
+import * as Discord from "~/discord.js";
+import * as GroupMe from "~/groupMe.js";
 import { Env } from "~/utility.js";
 
 async function main() {
-  await Bot.run();
+  GroupMe.init();
+  await Discord.init();
+
+  if (Env.getOptional(Env.OPTIONAL.CI)) await Discord.Commands.GM.updateNow();
 }
 
 main()

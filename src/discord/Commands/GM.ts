@@ -9,11 +9,12 @@ import {
 } from "~/utility/MessageParser.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
 import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
-import GroupMeChannel from "~/models/GroupMeChannel.js";
+import * as GroupMe from "~/groupMe.js";
 import { ConfigurationError, GroupMeMessageParseError } from "~/errors.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
 import { getFile } from "~/handlers/GroupMeFileController.js";
 import { Env } from "~/utility.js";
+import * as Errors from "~/errors.js";
 
 export class GM implements ICommand {
   /**
@@ -105,7 +106,8 @@ export class GM implements ICommand {
     INFO("Updating messages");
 
     const groupMeGroupId = Env.getRequired(Env.OPTIONAL.TEST_GROUPME_GROUP_ID);
-    const groupMeGroup = new GroupMeChannel(groupMeGroupId, "TEST");
+    GroupMe.init();
+    const groupMeGroup = await GroupMe.GroupHandler.fetchById(groupMeGroupId);
 
     const discordChannelId = Env.getRequired(
       Env.OPTIONAL.TEST_DISCORD_CHANNEL_ID,
@@ -134,7 +136,7 @@ export class GM implements ICommand {
   }
 
   private async sendMessages(
-    groupMeChannel: GroupMeChannel,
+    groupMeChannel: GroupMe.Group,
     discordChannel: DiscordJs.TextBasedChannel,
     interaction?: DiscordJs.ChatInputCommandInteraction,
   ) {
@@ -280,7 +282,6 @@ export class GM implements ICommand {
    * */
   private async config(interaction: DiscordJs.ChatInputCommandInteraction) {
     const channel = await this.getChannel(interaction);
-    if (!channel) return;
 
     const success = DataHandler.addConfig(interaction.channelId, channel);
 
@@ -305,7 +306,6 @@ export class GM implements ICommand {
    */
   private async setConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
     const channel = await this.getChannel(interaction);
-    if (!channel) return;
 
     const rm = DataHandler.rmConfig(interaction.channelId);
     const add = DataHandler.addConfig(interaction.channelId, channel);
@@ -325,20 +325,20 @@ export class GM implements ICommand {
 
   /**
    * GetConfig Subcommand
-   * Sends the current GroupMe Channel configured to a Discord Channel
+   * Sends the current GroupMe group configured to a Discord Channel
    * @param interaction -
    */
   private async getConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
-    const channel = DataHandler.getConfig(interaction.channelId);
+    const group = DataHandler.getConfig(interaction.channelId);
 
-    if (channel) {
+    if (group) {
       await interaction.reply({
-        content: `Current configuration: \n${JSON.stringify(channel)}`,
+        content: `Current configuration: \n${JSON.stringify(group)}`,
         ephemeral: true,
       });
     } else {
       await interaction.reply({
-        content: "This channel is not yet configured.",
+        content: "This group is not yet configured.",
         ephemeral: true,
       });
     }
@@ -353,24 +353,33 @@ export class GM implements ICommand {
    * @param interaction -
    * @returns List of available channel names
    */
-  private async getChannel(interaction: DiscordJs.ChatInputCommandInteraction) {
-    const channelName = interaction.options.getString("channel", true);
-    const response = await GroupMeController.getChannelByName(channelName);
-
-    if (response.length === 0) {
-      await interaction.reply({
-        content: `No channel found by the name ${channelName}`,
-        ephemeral: true,
-      });
-      return false;
-    } else if (response.length > 1) {
-      await interaction.reply({
-        content: "Multiple channels were found. Please select one.",
-        ephemeral: true,
-      });
-      return false;
+  private async getChannel(
+    interaction: DiscordJs.ChatInputCommandInteraction,
+  ): Promise<GroupMe.Group> {
+    const name = interaction.options.getString("channel", true);
+    try {
+      GroupMe.init();
+      return await GroupMe.GroupHandler.fetchByName(name);
+    } catch (err) {
+      ERR(err);
+      Errors.assertValid(err);
+      switch (err.constructor) {
+        case Errors.basic.TooMany:
+          await interaction.reply({
+            content: "Multiple channels were found. Please select one.",
+            ephemeral: true,
+          });
+          break;
+        case Errors.net.NotFound:
+          await interaction.reply({
+            content: `No channel found by the name ${name}`,
+            ephemeral: true,
+          });
+          break;
+        default:
+          break;
+      }
+      throw err;
     }
-
-    return response[0];
   }
 }

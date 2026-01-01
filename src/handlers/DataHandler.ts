@@ -1,5 +1,5 @@
 import fs, { readdirSync, readFileSync, rmSync } from "fs";
-import GroupMeChannel from "~/models/GroupMeChannel.js";
+import * as GroupMe from "~/groupMe.js";
 import { WARN, ERR } from "~/utility/LogMessage.js";
 
 /** Handles persistent data storage */
@@ -13,7 +13,7 @@ const DATA_PATH = "data";
  * @param discordID - Discord channel ID
  * @param groupMeChannel - GroupMe Channel Model
  */
-export function addConfig(discordID: string, groupMeChannel: GroupMeChannel) {
+export function addConfig(discordID: string, groupMeChannel: GroupMe.Group) {
   if (checkConfig(discordID)) {
     WARN(`Channel ${discordID} already has a GroupMe channel assigned`);
     return false;
@@ -38,7 +38,7 @@ export function addConfig(discordID: string, groupMeChannel: GroupMeChannel) {
  * @param discordID - Discord Channel ID
  * @param groupMeChannel - GroupMe Channel Model
  */
-export function setConfig(discordID: string, groupMeChannel: GroupMeChannel) {
+export function setConfig(discordID: string, groupMeChannel: GroupMe.Group) {
   if (!checkConfig(discordID)) {
     WARN(`No config exists for channel ${discordID}`);
     return false;
@@ -79,14 +79,8 @@ export function getConfig(discordID: string) {
   try {
     const path = checkConfig(discordID);
     if (!path) return;
-    const data = readFileSync(path, { encoding: "utf-8" });
-    const json = JSON.parse(data) as {
-      id: string;
-      name: string;
-      lastMessageID: string;
-    };
-    const channel = new GroupMeChannel(json.id, json.name);
-    channel.setLastMessageID(json.lastMessageID);
+    const json = readFileSync(path, { encoding: "utf-8" });
+    const channel = GroupMe.Group.fromJson(json);
     return channel;
   } catch (err) {
     WARN(err);

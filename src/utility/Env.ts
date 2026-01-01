@@ -3,6 +3,15 @@ import { ConfigurationError } from "~/errors.js";
 
 let isLoaded: boolean | null;
 
+enum SENSITIVE {
+  GROUPME_TOKEN = "GROUPME_TOKEN",
+  DISCORD_TOKEN = "DISCORD_TOKEN",
+  CLIENT_ID = "CLIENT_ID",
+  SERVER_ID = "SERVER_ID",
+  TEST_DISCORD_CHANNEL_ID = "TEST_DISCORD_CHANNEL_ID",
+  TEST_GROUPME_GROUP_ID = "TEST_GROUPME_GROUP_ID",
+}
+
 export enum REQUIRED {
   GROUPME_TOKEN = "GROUPME_TOKEN",
   DISCORD_TOKEN = "DISCORD_TOKEN",
@@ -53,4 +62,26 @@ export function getRequired(key: REQUIRED | OPTIONAL): string {
 export function getOptional(key: OPTIONAL): string | undefined {
   assertLoaded();
   return process.env[key];
+}
+
+/**
+ * Strips sensitive environment variables from a given string.
+ *
+ * Use this on any logging and error messages.
+ *
+ * This does not need the environment to be initialized, because if the
+ * variable doesn't exist, then it's not sensitive.
+ *
+ * @param msg - String to sanitize
+ * @returns sanitized string
+ */
+export function sanitize(msg: string): string {
+  Object.keys(SENSITIVE).forEach((key: string) => {
+    const value = process.env[key];
+    if (!value) return;
+
+    msg = msg.replaceAll(value, "[sanitized]");
+  });
+
+  return msg;
 }

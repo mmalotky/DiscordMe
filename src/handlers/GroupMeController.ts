@@ -1,26 +1,18 @@
 import * as GroupMe from "~/groupMe.js";
-import { ERR } from "~/utility/LogMessage.js";
 import GroupMeMessage from "~/models/GroupMeMessage.js";
 import {
   GroupMeAPIMessage,
   parseGroupMeMessage,
 } from "~/utility/MessageParser.js";
 import { GroupMeMessageFetchError } from "~/errors.js";
+import { Env } from "~/utility.js";
 
 /**
  * Send data requests to GroupMe
  */
 
-let GROUPME_TOKEN: string;
-
 const GROUPME_URL: string = "https://api.groupme.com/v3";
 
-/** Set the GroupMe Access Token */
-export function setToken(token: string | undefined) {
-  if (token) {
-    GROUPME_TOKEN = token;
-  } else ERR("No GroupMe token defined.");
-}
 /** Get the messages from a GroupMe Channel staring from the last message ID in persistent data */
 export async function getMessages(
   channel: GroupMe.Group,
@@ -51,6 +43,9 @@ async function getMessagesAfterID(
   channelID: string,
   lastID: string,
 ): Promise<GroupMeMessage[]> {
+  Env.init();
+
+  const GROUPME_TOKEN = Env.getRequired(Env.REQUIRED.GROUPME_TOKEN);
   const url = `${GROUPME_URL}/groups/${channelID}/messages?token=${GROUPME_TOKEN}&after_id=${lastID}`;
 
   const response = await fetch(url);

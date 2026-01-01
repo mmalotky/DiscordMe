@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import { ConfigurationError } from "~/errors.js";
 
-let isLoaded: boolean | null;
+let isLoaded: true | undefined;
 
 enum SENSITIVE {
   GROUPME_TOKEN = "GROUPME_TOKEN",

@@ -1,26 +1,26 @@
-import { GroupMeAttachment } from "./GroupMeAttachment.js";
-import GroupMeMember from "./GroupMeMember.js";
+import { Attachment } from "./Attachments.js";
+import { Member } from "./Member.js";
 
-export default class GroupMeMessage {
+export class Message {
   /**
    * GroupMe Message Model
    */
 
   private id: string;
-  private member: GroupMeMember;
+  private member: Member;
   private groupID: string;
   private createdOn: Date;
   private text: string;
-  private attachments: GroupMeAttachment[];
+  private attachments: Attachment[];
   private isSystem: boolean;
 
   constructor(
     id: string,
-    member: GroupMeMember,
+    member: Member,
     groupId: string,
     createdOn: Date,
     text: string,
-    attachments: GroupMeAttachment[],
+    attachments: Attachment[],
     isSystem: boolean,
   ) {
     this.id = id;
@@ -66,7 +66,7 @@ export default class GroupMeMessage {
     return attachments;
   }
 
-  setAttachments(attachments: GroupMeAttachment[]) {
+  setAttachments(attachments: Attachment[]) {
     this.attachments = attachments;
   }
 

@@ -1,12 +1,10 @@
 import * as DiscordJs from "discord.js";
-import * as GroupMeController from "~/handlers/GroupMeController.js";
 import * as ClientHandler from "../handlers/ClientHandler.js";
 import * as DataHandler from "~/handlers/DataHandler.js";
 import {
   fillInlineAttachments,
   parseDiscordMessage,
 } from "~/utility/MessageParser.js";
-import GroupMeMessage from "~/models/GroupMeMessage.js";
 import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
 import * as GroupMe from "~/groupMe.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
@@ -129,7 +127,7 @@ async function sendMessages(
   discordChannel: DiscordJs.TextBasedChannel,
   interaction?: DiscordJs.ChatInputCommandInteraction,
 ) {
-  const messages = await GroupMeController.getMessages(groupMeChannel);
+  const messages = await GroupMe.MessageHandler.getMessages(groupMeChannel);
 
   if (interaction) {
     if (messages.length === 0) {
@@ -151,7 +149,7 @@ async function sendMessages(
 
     const messageList = splitMessage(message.getText()).map(
       (m) =>
-        new GroupMeMessage(
+        new GroupMe.Message(
           message.getID(),
           message.getMember(),
           message.getGroupID(),
@@ -213,7 +211,7 @@ function splitMessage(message: string) {
 }
 
 async function sendGroupMeMessageToDiscordChannel(
-  message: GroupMeMessage,
+  message: GroupMe.Message,
   discordChannel: DiscordJs.TextBasedChannel,
 ) {
   const webHook = await getWebHook(discordChannel, message);
@@ -230,7 +228,7 @@ async function sendGroupMeMessageToDiscordChannel(
  */
 async function getWebHook(
   discordChannel: DiscordJs.TextBasedChannel,
-  message: GroupMeMessage,
+  message: GroupMe.Message,
 ): Promise<DiscordJs.Webhook> {
   const webHook = await WebHooksHandler.getWebhookByChannel(discordChannel);
 

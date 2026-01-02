@@ -59,6 +59,7 @@ export function build(): DiscordJs.SlashCommandSubcommandsOnlyBuilder {
 export async function execute(
   interaction: DiscordJs.ChatInputCommandInteraction,
 ) {
+  INFO("Executing GM command");
   const subcommand = interaction.options.getSubcommand();
   switch (subcommand) {
     case "config":
@@ -116,6 +117,7 @@ export async function updateNow() {
  * @param interaction -
  * */
 async function update(interaction: DiscordJs.ChatInputCommandInteraction) {
+  INFO("Running GM update command");
   const groupMeChannel = DataHandler.getConfig(interaction.channelId);
   const discordChannel = interaction.channel;
   if (!groupMeChannel || !discordChannel) return;
@@ -127,6 +129,7 @@ async function sendMessages(
   discordChannel: DiscordJs.TextBasedChannel,
   interaction?: DiscordJs.ChatInputCommandInteraction,
 ) {
+  INFO(`Sending messages from GroupMe to Discord`);
   const messages = await GroupMe.MessageHandler.getMessages(groupMeChannel);
 
   if (interaction) {
@@ -230,6 +233,7 @@ async function getWebHook(
   discordChannel: DiscordJs.TextBasedChannel,
   message: GroupMe.Message,
 ): Promise<DiscordJs.Webhook> {
+  INFO(`Fetching a webhook for (gm-user:${message.getMember().getID()})`);
   const webHook = await WebHooksHandler.getWebhookByChannel(discordChannel);
 
   try {
@@ -264,6 +268,7 @@ async function getWebHook(
  * @param interaction -
  * */
 async function config(interaction: DiscordJs.ChatInputCommandInteraction) {
+  INFO("Running GM config command");
   const channel = await getChannel(interaction);
 
   const success = DataHandler.addConfig(interaction.channelId, channel);
@@ -288,6 +293,7 @@ async function config(interaction: DiscordJs.ChatInputCommandInteraction) {
  * @param interaction -
  */
 async function setConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
+  INFO("Running GM setconfig command");
   const channel = await getChannel(interaction);
 
   const rm = DataHandler.rmConfig(interaction.channelId);
@@ -312,6 +318,7 @@ async function setConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
  * @param interaction -
  */
 async function getConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
+  INFO("Running GM getconfig command");
   const group = DataHandler.getConfig(interaction.channelId);
 
   if (group) {
@@ -339,6 +346,8 @@ async function getConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
 async function getChannel(
   interaction: DiscordJs.ChatInputCommandInteraction,
 ): Promise<GroupMe.Group> {
+  INFO("Fetching channel from interaction");
+
   const name = interaction.options.getString("channel", true);
   try {
     GroupMe.init();

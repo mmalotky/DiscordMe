@@ -5,5 +5,7 @@ export interface IGroupIndexResponse {
 }
 
 export interface IMessageIndexResponse {
-  response: Obj.IMessage[];
+  response: {
+    messages: Obj.IMessage[];
+  };
 }

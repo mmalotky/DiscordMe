@@ -15,7 +15,7 @@ export async function init() {
 
   client = createClient();
   client.once(DiscordJs.Events.ClientReady, onLoginSuccess);
-  client.once(DiscordJs.Events.InteractionCreate, onInteraction);
+  client.on(DiscordJs.Events.InteractionCreate, onInteraction);
 
   await login();
 }
@@ -63,6 +63,7 @@ function onLoginSuccess(client: DiscordJs.Client<true>) {
 function onInteraction(interaction: DiscordJs.Interaction) {
   (async () => {
     if (!interaction.isChatInputCommand()) return;
+    INFO(`Received command interaction ${interaction.commandName}`);
 
     const execution = Commands.ExecMapping[interaction.commandName];
     if (!execution) {

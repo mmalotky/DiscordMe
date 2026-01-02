@@ -3,7 +3,7 @@ export * from "./discord/utility.js";
 
 import * as ClientHandler from "./discord/handlers/ClientHandler.js";
 
-export { registerCommands } from './discord/handlers/ClientHandler.js';
+export { registerCommands } from "./discord/handlers/ClientHandler.js";
 
 let isInit: true | undefined;
 

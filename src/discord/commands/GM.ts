@@ -1,12 +1,10 @@
 import * as DiscordJs from "discord.js";
-import * as GroupMeController from "~/handlers/GroupMeController.js";
 import * as ClientHandler from "../handlers/ClientHandler.js";
 import * as DataHandler from "~/handlers/DataHandler.js";
 import {
   fillInlineAttachments,
   parseDiscordMessage,
 } from "~/utility/MessageParser.js";
-import GroupMeMessage from "~/models/GroupMeMessage.js";
 import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
 import * as GroupMe from "~/groupMe.js";
 import { ERR, INFO } from "~/utility/LogMessage.js";
@@ -61,6 +59,7 @@ export function build(): DiscordJs.SlashCommandSubcommandsOnlyBuilder {
 export async function execute(
   interaction: DiscordJs.ChatInputCommandInteraction,
 ) {
+  INFO("Executing GM command");
   const subcommand = interaction.options.getSubcommand();
   switch (subcommand) {
     case "config":
@@ -118,6 +117,7 @@ export async function updateNow() {
  * @param interaction -
  * */
 async function update(interaction: DiscordJs.ChatInputCommandInteraction) {
+  INFO("Running GM update command");
   const groupMeChannel = DataHandler.getConfig(interaction.channelId);
   const discordChannel = interaction.channel;
   if (!groupMeChannel || !discordChannel) return;
@@ -129,7 +129,8 @@ async function sendMessages(
   discordChannel: DiscordJs.TextBasedChannel,
   interaction?: DiscordJs.ChatInputCommandInteraction,
 ) {
-  const messages = await GroupMeController.getMessages(groupMeChannel);
+  INFO(`Sending messages from GroupMe to Discord`);
+  const messages = await GroupMe.MessageHandler.getMessages(groupMeChannel);
 
   if (interaction) {
     if (messages.length === 0) {
@@ -151,7 +152,7 @@ async function sendMessages(
 
     const messageList = splitMessage(message.getText()).map(
       (m) =>
-        new GroupMeMessage(
+        new GroupMe.Message(
           message.getID(),
           message.getMember(),
           message.getGroupID(),
@@ -213,7 +214,7 @@ function splitMessage(message: string) {
 }
 
 async function sendGroupMeMessageToDiscordChannel(
-  message: GroupMeMessage,
+  message: GroupMe.Message,
   discordChannel: DiscordJs.TextBasedChannel,
 ) {
   const webHook = await getWebHook(discordChannel, message);
@@ -230,8 +231,9 @@ async function sendGroupMeMessageToDiscordChannel(
  */
 async function getWebHook(
   discordChannel: DiscordJs.TextBasedChannel,
-  message: GroupMeMessage,
+  message: GroupMe.Message,
 ): Promise<DiscordJs.Webhook> {
+  INFO(`Fetching a webhook for (gm-user:${message.getMember().getID()})`);
   const webHook = await WebHooksHandler.getWebhookByChannel(discordChannel);
 
   try {
@@ -266,6 +268,7 @@ async function getWebHook(
  * @param interaction -
  * */
 async function config(interaction: DiscordJs.ChatInputCommandInteraction) {
+  INFO("Running GM config command");
   const channel = await getChannel(interaction);
 
   const success = DataHandler.addConfig(interaction.channelId, channel);
@@ -290,6 +293,7 @@ async function config(interaction: DiscordJs.ChatInputCommandInteraction) {
  * @param interaction -
  */
 async function setConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
+  INFO("Running GM setconfig command");
   const channel = await getChannel(interaction);
 
   const rm = DataHandler.rmConfig(interaction.channelId);
@@ -314,6 +318,7 @@ async function setConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
  * @param interaction -
  */
 async function getConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
+  INFO("Running GM getconfig command");
   const group = DataHandler.getConfig(interaction.channelId);
 
   if (group) {
@@ -341,6 +346,8 @@ async function getConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
 async function getChannel(
   interaction: DiscordJs.ChatInputCommandInteraction,
 ): Promise<GroupMe.Group> {
+  INFO("Fetching channel from interaction");
+
   const name = interaction.options.getString("channel", true);
   try {
     GroupMe.init();

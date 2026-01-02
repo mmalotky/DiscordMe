@@ -1,6 +1,6 @@
 /** Class Definitions for GroupMe Attachments */
 
-export class GroupMeAttachment {
+export class Attachment {
   name: string | undefined;
   content: string | undefined;
   data: Buffer | undefined;
@@ -10,7 +10,7 @@ export class GroupMeAttachment {
   constructor() {}
 }
 
-export class GroupMeImageAttachment extends GroupMeAttachment {
+export class ImageAttachment extends Attachment {
   name: string;
   data: Buffer;
 
@@ -21,7 +21,7 @@ export class GroupMeImageAttachment extends GroupMeAttachment {
   }
 }
 
-export class GroupMeVideoAttachment extends GroupMeAttachment {
+export class VideoAttachment extends Attachment {
   content: string;
 
   constructor(url: string) {
@@ -30,7 +30,7 @@ export class GroupMeVideoAttachment extends GroupMeAttachment {
   }
 }
 
-export class GroupMeFileAttachment extends GroupMeAttachment {
+export class FileAttachment extends Attachment {
   name: string;
   content: string;
   data: Buffer;
@@ -43,7 +43,7 @@ export class GroupMeFileAttachment extends GroupMeAttachment {
   }
 }
 
-export class GroupMeLocationAttachment extends GroupMeAttachment {
+export class LocationAttachment extends Attachment {
   content: string;
   list: string[];
 
@@ -54,7 +54,7 @@ export class GroupMeLocationAttachment extends GroupMeAttachment {
   }
 }
 
-export class GroupMeEmojiAttachment extends GroupMeAttachment {
+export class EmojiAttachment extends Attachment {
   content: string;
   map: number[][];
 
@@ -65,7 +65,7 @@ export class GroupMeEmojiAttachment extends GroupMeAttachment {
   }
 }
 
-export class GroupMeSplitAttachment extends GroupMeAttachment {
+export class SplitAttachment extends Attachment {
   content: string;
 
   constructor(token: string) {
@@ -74,7 +74,7 @@ export class GroupMeSplitAttachment extends GroupMeAttachment {
   }
 }
 
-export class GroupMeMentionsAttachment extends GroupMeAttachment {
+export class MentionsAttachment extends Attachment {
   list: string[];
   map: number[][];
 
@@ -85,7 +85,7 @@ export class GroupMeMentionsAttachment extends GroupMeAttachment {
   }
 }
 
-export class GroupMeReplyAttachment extends GroupMeAttachment {
+export class ReplyAttachment extends Attachment {
   content: string;
 
   constructor(replyID: string) {
@@ -94,7 +94,7 @@ export class GroupMeReplyAttachment extends GroupMeAttachment {
   }
 }
 
-export class GroupMePollAttachment extends GroupMeAttachment {
+export class PollAttachment extends Attachment {
   content: string;
 
   constructor(id: string) {
@@ -103,7 +103,7 @@ export class GroupMePollAttachment extends GroupMeAttachment {
   }
 }
 
-export class GroupMeEventAttachment extends GroupMeAttachment {
+export class EventAttachment extends Attachment {
   content: string;
 
   constructor(id: string) {

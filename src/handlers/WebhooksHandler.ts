@@ -1,6 +1,6 @@
 import { ConfigurationError } from "~/errors.js";
 import * as DiscordJs from "discord.js";
-import GroupMeMessage from "~/models/GroupMeMessage.js";
+import * as GroupMe from "~/groupMe.js";
 
 /** Manage Discord Webhooks */
 
@@ -12,7 +12,7 @@ import GroupMeMessage from "~/models/GroupMeMessage.js";
  */
 export async function editWebhook(
   webHook: DiscordJs.Webhook,
-  message: GroupMeMessage,
+  message: GroupMe.Message,
   avatarBuffer: Buffer | null,
 ): Promise<DiscordJs.Webhook> {
   const name = message.getMember().getName();
@@ -55,7 +55,7 @@ export async function getWebhookByChannel(
  */
 export async function createWebHook(
   channel: DiscordJs.TextBasedChannel,
-  message: GroupMeMessage,
+  message: GroupMe.Message,
   avatarBuffer: Buffer | null,
 ): Promise<DiscordJs.Webhook> {
   if (!channel || !(channel instanceof DiscordJs.TextChannel)) {

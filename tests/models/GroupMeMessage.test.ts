@@ -1,25 +1,19 @@
-import {
-  GroupMeAttachment,
-  GroupMeEmojiAttachment,
-  GroupMeImageAttachment,
-} from "../../src/models/GroupMeAttachment.js";
-import GroupMeMember from "../../src/models/GroupMeMember.js";
-import GroupMeMessage from "../../src/models/GroupMeMessage.js";
+import * as GroupMe from "../../src/groupMe.js";
 
-const tester = new GroupMeMember("456", "tester", "avatarurl");
+const tester = new GroupMe.Member("456", "tester", "avatarurl");
 
-const attachments: GroupMeAttachment[] = [
-  new GroupMeImageAttachment(
+const attachments: GroupMe.Attachment[] = [
+  new GroupMe.ImageAttachment(
     "testImage",
     Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]),
   ),
-  new GroupMeEmojiAttachment("@", [
+  new GroupMe.EmojiAttachment("@", [
     [1, 2],
     [3, 4],
   ]),
 ];
 
-const message = new GroupMeMessage(
+const message = new GroupMe.Message(
   "123",
   tester,
   "789",
@@ -49,8 +43,8 @@ test("Get Attachments", () =>
   expect(message.getAttachments()).toEqual(attachments));
 
 test("Set Attachments", () => {
-  const newAttachments: GroupMeAttachment[] = [
-    new GroupMeImageAttachment(
+  const newAttachments: GroupMe.Attachment[] = [
+    new GroupMe.ImageAttachment(
       "testImage",
       Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]),
     ),

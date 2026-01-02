@@ -1,4 +1,4 @@
-export default class GroupMeMember {
+export class Member {
   /**
    * GroupMe member model
    */

@@ -14,3 +14,11 @@ export interface IGroupIndexRequestParameters extends Parameters {
 export interface IGroupIndexRequest extends IRequest {
   params: IGroupIndexRequestParameters;
 }
+
+export interface IMessageIndexRequestParameters extends Parameters {
+  after_id: string;
+}
+
+export interface IMessageIndexRequest extends IRequest {
+  params: IMessageIndexRequestParameters;
+}

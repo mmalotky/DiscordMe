@@ -1,5 +1,12 @@
 import type { IGroup } from "../net/api/objects.js";
 import * as Errors from "~/errors.js";
+
+interface IConfigGroup {
+  id: string;
+  name: string;
+  lastMessageID: string;
+}
+
 export class Group {
   /**
    * Model for GroupMe Channel for encoding persistent data
@@ -9,14 +16,21 @@ export class Group {
   private name: string;
   private lastMessageID: string = "0";
 
-  constructor(apiGroup: IGroup) {
-    this.id = apiGroup.id;
-    this.name = apiGroup.name;
+  private constructor() {
+    this.id = "uninitialized";
+    this.name = "uninitialized";
+  }
+
+  static fromApi(apiGroup: IGroup) {
+    const group = new Group();
+    group.id = apiGroup.id;
+    group.name = apiGroup.name;
+    return group;
   }
 
   static fromJson(json: string): Group {
     try {
-      return JSON.parse(json) as Group;
+      return Object.assign(new Group(), JSON.parse(json) as IConfigGroup);
     } catch (err) {
       Errors.assertValid(err);
       throw new Errors.basic.Configuration(

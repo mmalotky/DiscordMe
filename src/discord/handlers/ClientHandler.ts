@@ -57,13 +57,7 @@ async function login() {
 }
 
 function onLoginSuccess(client: DiscordJs.Client<true>) {
-  (async () => {
-    INFO(`Logged in as ${client.user.tag}`);
-
-    await registerCommands();
-
-    INFO("DiscordMe Online");
-  })().catch(handleEventError);
+  INFO(`Logged in as ${client.user.tag}`);
 }
 
 function onInteraction(interaction: DiscordJs.Interaction) {

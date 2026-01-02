@@ -69,6 +69,6 @@ async function fetchPage(page: number): Promise<Group[]> {
   const response: Net.api.IGroupIndexResponse =
     await Net.api.fetchJSON(request);
   return response.response.map((group) => {
-    return new Group(group);
+    return Group.fromApi(group);
   });
 }

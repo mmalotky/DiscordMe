@@ -1,220 +1,133 @@
-import { GroupMeMessageParseError } from "~/errors.js";
-import * as GMAttachments from "../models/Attachments.js";
-import { Member } from "../models/Member.js";
-import { Message } from "../models/Message.js";
+import { emojiMap } from "~/utility/GroupMeEmojiMap.js";
+import { Member, Message, attachments } from "../models.js";
 import { IAttachment, IMessage } from "../net/api.js";
-import * as GroupMeFileController from "~/handlers/GroupMeFileController.js";
-import { WARN } from "~/utility/LogMessage.js";
-import { Env } from "~/utility.js";
+import * as Errors from "~/errors.js";
+import { Log } from "~/utility.js";
+import * as Discord from "~/discord.js";
+
+const MAX_MSG_CHARS = 2000 - 3; // pad with '...'
 
 /** Convert GroupMe API message data to GroupMeMessage Model
  * @throws GroupMeMessageParseError
  */
-export async function parse(json: IMessage): Promise<Message> {
-  return new Message(
-    json.id,
-    new Member(json.user_id, json.name, json.avatar_url),
-    json.group_id,
-    new Date(json.created_at * 1000),
-    json.text,
-    await parseAttachments(json),
-    json.system,
-  );
+export async function parse(msg: IMessage): Promise<Message[]> {
+  const attachments = await parseAttachments(msg);
+  const date = new Date(msg.created_at * 1000);
+  const member = new Member(msg.user_id, msg.name, msg.avatar_url);
+
+  const tag = `[<t:${Math.floor(msg.created_at)}>]   `;
+  const text = fillInlineAttachments(msg.text, attachments);
+
+  return split(tag + text).map((text) => {
+    return new Message(
+      msg.id,
+      member,
+      msg.group_id,
+      date,
+      text,
+      attachments,
+      msg.system,
+    );
+  });
 }
 
 async function parseAttachments(
-  json: IMessage,
-): Promise<GMAttachments.Attachment[]> {
-  const rawAttachments: IAttachment[] = json.attachments;
-  const attachments: GMAttachments.Attachment[] = [];
+  msg: IMessage,
+): Promise<attachments.Attachment[]> {
+  const rawAttachments: IAttachment[] = msg.attachments;
+  const attachmentsList: attachments.Attachment[] = [];
 
-  for (const raw of rawAttachments) {
-    switch (raw.type) {
-      case "image": {
-        attachments.push(await parseImageAttachment(raw));
-        break;
+  for (const rawAttachment of rawAttachments) {
+    attachmentsList.push(await attachments.fromApi(rawAttachment, msg));
+  }
+
+  return attachmentsList;
+}
+
+function split(msg: string): string[] {
+  const messages: string[] = [];
+  let message = "";
+  let firstString = true;
+
+  msg.split(" ").forEach((snippet) => {
+    if (snippet.length > MAX_MSG_CHARS) throw new Errors.net.Parse("too long");
+    if (snippet.length + message.length > MAX_MSG_CHARS) {
+      messages.push(message + "...");
+      message = "..." + snippet;
+      return;
+    }
+
+    if (!firstString) message += " ";
+    firstString = false;
+    message += snippet;
+  });
+
+  return messages;
+}
+
+/** FROM GM.ts
+ function splitMessage(message: string) {
+   const messageList: string[] = [];
+   if (message.length <= 1500) {
+     messageList.push(message);
+     return messageList;
+   }
+ 
+   let i = 0;
+   do {
+     const areaCheck = message.substring(i, i + 1500);
+     if (areaCheck.length === 0) {
+       i += 1;
+       continue;
+     }
+ 
+     const re = /(\s+[^:\s]*$)|\s*(:[^:\s]+:[^:\s]*$)|\s*:[^\s:]*$/;
+     const substring = areaCheck.replace(re, "");
+ 
+     if (substring.length === 0) {
+       messageList.push(areaCheck);
+       i += areaCheck.length;
+     } else {
+       messageList.push(substring);
+       i += substring.length;
+     }
+   } while (i < message.length);
+ 
+   return messageList;
+ }
+ */
+
+/** Utility function to add inline attachments to the GroupMe Message content body */
+function fillInlineAttachments(text: string, att: attachments.Attachment[]) {
+  const emojis = att.filter((a) => a.type === attachments.Types.Emoji);
+
+  for (const emoji of emojis) {
+    const placeholder = emoji.content;
+    assertNotMissing("placeholder", placeholder);
+    const charmap = emoji.map;
+    assertNotMissing("charmap", charmap);
+
+    for (let i = 0; i < charmap.length; i++) {
+      const index = charmap[i][0] - 1;
+      if (emojiMap.length < index + 1) {
+        Log.WARN(`Emoji not yet implemented. Index: [${index}]`);
+        continue;
       }
-      case "emoji": {
-        attachments.push(parseEmojiAttachment(raw));
-        break;
+      const pick = charmap[i][1];
+      if (emojiMap[index].length < pick + 1) {
+        Log.WARN(`Emoji not yet implemented. Index: [${index}, ${pick}]`);
+        continue;
       }
-      case "location": {
-        attachments.push(parseLocationAttachment(raw));
-        break;
-      }
-      case "split": {
-        attachments.push(parseSplitAttachment(raw));
-        break;
-      }
-      case "video": {
-        attachments.push(parseVideoAttachment(raw));
-        break;
-      }
-      case "file": {
-        attachments.push(await parseFileAttachment(json, raw));
-        break;
-      }
-      case "reply": {
-        attachments.push(parseReplyAttachment(raw));
-        break;
-      }
-      case "mentions": {
-        attachments.push(parseMentionsAttachment(raw));
-        break;
-      }
-      case "poll": {
-        attachments.push(parsePollAttachment(raw));
-        break;
-      }
-      case "event": {
-        attachments.push(parseEventAttachment(raw));
-        break;
-      }
-      default: {
-        WARN(`Attachment type ${raw.type} not recognized.`);
-      }
+      const emojiID = emojiMap[index][pick];
+      text = text.replace(placeholder, emojiID);
     }
   }
-
-  return attachments;
+  return Discord.EmojiMap.parse(text);
 }
 
-/**
- * Extract GroupMe Image data
- * @param raw -
- *
- * @Throws GroupMeMessageParseError
- */
-async function parseImageAttachment(
-  raw: IAttachment,
-): Promise<GMAttachments.Attachment> {
-  const imgUrl = raw.url;
-  const re: RegExp = /\w+(?=\.\w{32}$)/;
-
-  const extensionSearch = re.exec(imgUrl);
-  if (!extensionSearch) {
-    throw new GroupMeMessageParseError(
-      `Failed to parse image type from ${imgUrl}`,
-    );
-  }
-  const extension = extensionSearch[0];
-
-  const imgName = "GroupMeImage." + extension;
-  const image = await GroupMeFileController.getFile(imgUrl);
-
-  return new GMAttachments.ImageAttachment(imgName, image);
-}
-
-/**
- * Extract GroupMe Emoji data
- * @param raw -
- *
- * @throws GroupMeMessageParseError
- */
-function parseEmojiAttachment(raw: IAttachment): GMAttachments.Attachment {
-  const placeholder = raw.placeholder;
-  const charmap = raw.charmap;
-  return new GMAttachments.EmojiAttachment(placeholder, charmap);
-}
-
-/**
- * Extract GroupMe Location data
- * @param raw -
- *
- * @throws GroupMeMessageParseError
- */
-function parseLocationAttachment(raw: IAttachment): GMAttachments.Attachment {
-  const name = raw.name;
-  const lat = raw.lat;
-  const lng = raw.lng;
-  return new GMAttachments.LocationAttachment(name, lat, lng);
-}
-
-/**
- * Extract GroupMe Split data
- * @param raw -
- *
- * @throws GroupMeMessageParseError
- */
-function parseSplitAttachment(raw: IAttachment): GMAttachments.Attachment {
-  const token = raw.token;
-  return new GMAttachments.SplitAttachment(token);
-}
-
-/**
- * Extract GroupMe Video data
- * @param raw -
- *
- * @throws GroupMeMessageParseError
- */
-function parseVideoAttachment(raw: IAttachment): GMAttachments.Attachment {
-  const vidUrl = raw.url;
-  return new GMAttachments.VideoAttachment(vidUrl);
-}
-
-/**
- * Extract GroupMe File data
- * @param raw -
- * @param json -
- *
- * @throws GroupMeMessageParseError
- */
-async function parseFileAttachment(
-  json: IMessage,
-  raw: IAttachment,
-): Promise<GMAttachments.Attachment> {
-  Env.init();
-
-  const fileId = raw.file_id;
-  const token = Env.getRequired(Env.REQUIRED.GROUPME_TOKEN);
-  const fileURL = `https://file.groupme.com/v1/${json.group_id}/files/${fileId}?token=${token}`;
-  const fileData = await GroupMeFileController.getFile(fileURL);
-  const fileName = await GroupMeFileController.getFileName(fileURL);
-
-  return new GMAttachments.FileAttachment(fileURL, fileName, fileData);
-}
-
-/**
- * Extract GroupMe Reply data
- * @param raw -
- *
- * @throws GroupMeMessageParseError
- */
-function parseReplyAttachment(raw: IAttachment): GMAttachments.Attachment {
-  const replyID = raw.reply_id;
-  return new GMAttachments.ReplyAttachment(replyID);
-}
-
-/**
- * Extract GroupMe Mentions Data
- * @param raw -
- *
- * @throws GroupMeMessageParseError
- */
-function parseMentionsAttachment(raw: IAttachment): GMAttachments.Attachment {
-  const userIDs = raw.user_ids;
-  const loci = raw.loci;
-  return new GMAttachments.MentionsAttachment(userIDs, loci);
-}
-
-/**
- * Extract GroupMe Poll Data
- * @param raw -
- *
- * @throws GroupMeMessageParseError
- */
-function parsePollAttachment(raw: IAttachment): GMAttachments.Attachment {
-  const pollID = raw.id;
-  return new GMAttachments.PollAttachment(pollID);
-}
-
-/**
- * Extract GroupMe Event data
- * @param raw -
- *
- * @throws GroupMeMessageParseError
- */
-function parseEventAttachment(raw: IAttachment): GMAttachments.Attachment {
-  const eventID = raw.id;
-  return new GMAttachments.EventAttachment(eventID);
+function assertNotMissing<R>(
+  symbol: string,
+  value: R | undefined,
+): asserts value is R {
+  if (value === undefined) throw new Errors.net.Parse(`missing ${symbol}`);
 }

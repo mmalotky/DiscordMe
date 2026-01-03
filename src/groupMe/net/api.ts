@@ -5,6 +5,7 @@ import * as Errors from "~/errors.js";
 export * from "./api/objects.js";
 export * from "./api/requests.js";
 export * from "./api/responses.js";
+export * from "./api/ResponseValidator.js";
 
 const GROUPME_URL_PREFIX: string = "https://api.groupme.com/v3";
 

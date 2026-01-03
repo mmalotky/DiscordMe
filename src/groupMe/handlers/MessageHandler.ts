@@ -1,9 +1,7 @@
-import { Message } from "../models/Message.js";
-import * as Net from "~/groupMe/net.js";
-import { Group } from "../models.js";
+import * as Net from "../net.js";
+import { Group, Message } from "../models.js";
 import { MessageParser } from "../utility.js";
-import { validateIMessageIndexResponse } from "../net/api/ResponseValidator.js";
-import { INFO } from "~/utility/LogMessage.js";
+import { Log } from "~/utility.js";
 
 /**
  * Send data requests to GroupMe
@@ -11,7 +9,7 @@ import { INFO } from "~/utility/LogMessage.js";
 
 /** Get the messages from a GroupMe Channel staring from the last message ID in persistent data */
 export async function getMessages(group: Group): Promise<Message[]> {
-  INFO(`Fetching messages from GroupMe for (group:${group.getID()})`);
+  Log.INFO(`Fetching messages from GroupMe for (group:${group.getID()})`);
   const messages: Message[] = [];
   let messagePage: Message[];
 
@@ -35,17 +33,19 @@ export async function getMessages(group: Group): Promise<Message[]> {
  * @throws GroupMeMessageFetchError
  */
 async function fetchPage(groupID: string, pageID: string): Promise<Message[]> {
-  INFO(`Fetching message page #${pageID} from GroupMe for (group:${groupID})`);
+  Log.INFO(
+    `Fetching message page #${pageID} from GroupMe for (group:${groupID})`,
+  );
   const request: Net.api.IMessageIndexRequest = {
     endpoint: `groups/${groupID}/messages`,
     params: { after_id: `${pageID}` },
   };
   const response: Net.api.IMessageIndexResponse =
     await Net.api.fetchJSON(request);
-  validateIMessageIndexResponse(response);
+  Net.api.validateIMessageIndexResponse(response);
   const messages: Message[] = [];
   for (const message of response.response.messages) {
-    messages.push(await MessageParser.parse(message));
+    messages.push(...(await MessageParser.parse(message)));
   }
   return messages;
 }

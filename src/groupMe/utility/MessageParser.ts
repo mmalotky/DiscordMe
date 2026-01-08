@@ -26,13 +26,13 @@ export async function parse(msg: IMessage): Promise<Message[]> {
       date,
       text,
       attachments,
-      msg.system
+      msg.system,
     );
   });
 }
 
 async function parseAttachments(
-  msg: IMessage
+  msg: IMessage,
 ): Promise<attachments.Attachment[]> {
   const rawAttachments: IAttachment[] = msg.attachments;
   const attachmentsList: attachments.Attachment[] = [];
@@ -126,7 +126,7 @@ function fillInlineAttachments(text: string, att: attachments.Attachment[]) {
 
 function assertNotMissing<R>(
   symbol: string,
-  value: R | undefined
+  value: R | undefined,
 ): asserts value is R {
   if (value === undefined) throw new Errors.net.Parse(`missing ${symbol}`);
 }

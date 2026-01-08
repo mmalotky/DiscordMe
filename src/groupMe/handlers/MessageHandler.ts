@@ -34,7 +34,7 @@ export async function getMessages(group: Group): Promise<Message[]> {
  */
 async function fetchPage(groupID: string, pageID: string): Promise<Message[]> {
   Log.INFO(
-    `Fetching message page #${pageID} from GroupMe for (group:${groupID})`
+    `Fetching message page #${pageID} from GroupMe for (group:${groupID})`,
   );
   const request: Net.api.IMessageIndexRequest = {
     endpoint: `groups/${groupID}/messages`,

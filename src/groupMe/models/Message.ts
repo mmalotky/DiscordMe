@@ -1,5 +1,4 @@
-import { Attachment } from "./attachments.js";
-import { Member } from "../models/Member.js";
+import { attachments, Member } from "../models.js";
 
 export class Message {
   /**
@@ -11,7 +10,7 @@ export class Message {
   private groupID: string;
   private createdOn: Date;
   private text: string;
-  private attachments: Attachment[];
+  private attachments: attachments.Attachment[];
   private isSystem: boolean;
 
   constructor(
@@ -20,7 +19,7 @@ export class Message {
     groupId: string,
     createdOn: Date,
     text: string,
-    attachments: Attachment[],
+    attachments: attachments.Attachment[],
     isSystem: boolean,
   ) {
     this.id = id;
@@ -66,7 +65,7 @@ export class Message {
     return attachments;
   }
 
-  setAttachments(attachments: Attachment[]) {
+  setAttachments(attachments: attachments.Attachment[]) {
     this.attachments = attachments;
   }
 

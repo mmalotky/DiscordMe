@@ -21,6 +21,8 @@ export interface IAttachment {
   token: string | undefined;
   id: string | undefined;
   file_id: string | undefined;
+  event_id: string | undefined;
+  poll_id: string;
   reply_id: string | undefined;
   user_ids: string[] | undefined;
   loci: number[][] | undefined;

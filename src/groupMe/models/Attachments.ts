@@ -270,8 +270,8 @@ class PollAttachment extends Attachment {
    * @throws GroupMeMessageParseError
    */
   static fromApi(raw: Net.api.IAttachment): PollAttachment {
-    const pollID = raw.id;
-    assertNotMissing("id", pollID);
+    const pollID = raw.poll_id;
+    assertNotMissing("poll_id", pollID);
     return new PollAttachment(pollID);
   }
 }
@@ -292,8 +292,8 @@ class EventAttachment extends Attachment {
    * @throws GroupMeMessageParseError
    */
   static fromApi(raw: Net.api.IAttachment): EventAttachment {
-    const eventID = raw.id;
-    assertNotMissing("id", eventID);
+    const eventID = raw.event_id;
+    assertNotMissing("event_id", eventID);
     return new EventAttachment(eventID);
   }
 }

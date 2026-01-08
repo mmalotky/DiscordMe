@@ -1,4 +1,4 @@
-import { Attachment } from "../models/Attachments.js";
+import { Attachment } from "./attachments.js";
 import { Member } from "../models/Member.js";
 
 export class Message {

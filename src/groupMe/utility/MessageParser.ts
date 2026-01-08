@@ -26,13 +26,13 @@ export async function parse(msg: IMessage): Promise<Message[]> {
       date,
       text,
       attachments,
-      msg.system,
+      msg.system
     );
   });
 }
 
 async function parseAttachments(
-  msg: IMessage,
+  msg: IMessage
 ): Promise<attachments.Attachment[]> {
   const rawAttachments: IAttachment[] = msg.attachments;
   const attachmentsList: attachments.Attachment[] = [];
@@ -47,20 +47,18 @@ async function parseAttachments(
 function split(msg: string): string[] {
   const messages: string[] = [];
   let message = "";
-  let firstString = true;
 
-  msg.split(" ").forEach((snippet) => {
+  const snippets = msg.split(" ");
+  for (const snippet of snippets) {
     if (snippet.length > MAX_MSG_CHARS) throw new Errors.net.Parse("too long");
     if (snippet.length + message.length > MAX_MSG_CHARS) {
       messages.push(message + "...");
       message = "..." + snippet;
-      return;
+    } else {
+      message += " " + snippet;
     }
-
-    if (!firstString) message += " ";
-    firstString = false;
-    message += snippet;
-  });
+  }
+  messages.push(message);
 
   return messages;
 }
@@ -99,6 +97,7 @@ function split(msg: string): string[] {
 
 /** Utility function to add inline attachments to the GroupMe Message content body */
 function fillInlineAttachments(text: string, att: attachments.Attachment[]) {
+  if (!text) return text;
   const emojis = att.filter((a) => a.type === attachments.Types.Emoji);
 
   for (const emoji of emojis) {
@@ -127,7 +126,7 @@ function fillInlineAttachments(text: string, att: attachments.Attachment[]) {
 
 function assertNotMissing<R>(
   symbol: string,
-  value: R | undefined,
+  value: R | undefined
 ): asserts value is R {
   if (value === undefined) throw new Errors.net.Parse(`missing ${symbol}`);
 }

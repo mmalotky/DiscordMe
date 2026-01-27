@@ -1,8 +1,7 @@
 import * as Net from "../net.js";
 import * as Error from "~/errors.js";
-import { Group } from "../models/Group.js";
-import { validateIGroupIndexResponse } from "../net/api/ResponseValidator.js";
-import { INFO } from "~/utility/LogMessage.js";
+import { Group } from "../models.js";
+import { Log } from "~/utility.js";
 
 /**
  * Fetches all visible groups from GroupMe
@@ -11,7 +10,7 @@ import { INFO } from "~/utility/LogMessage.js";
  * @throws Error.net.* - various potential networking and parsing errors.
  */
 export async function fetchAll(): Promise<Group[]> {
-  INFO("Fetching all groups from GroupMe");
+  Log.INFO("Fetching all groups from GroupMe");
   const groups: Group[] = [];
   let page: number | undefined = 1;
   while (page) {
@@ -38,7 +37,7 @@ export async function fetchAll(): Promise<Group[]> {
  * @throws Error.net.* - various potential networking and parsing errors.
  */
 export async function fetchByName(name: string): Promise<Group> {
-  INFO(`Fetching group (name:${name}) from GroupMe`);
+  Log.INFO(`Fetching group (name:${name}) from GroupMe`);
   const groups = (await fetchAll()).filter(
     (channel) => channel.getName() === name,
   );
@@ -59,7 +58,7 @@ export async function fetchByName(name: string): Promise<Group> {
  * @throws Error.net.* - various potential networking and parsing errors.
  */
 export async function fetchById(id: string): Promise<Group> {
-  INFO(`Fetching group (id:${id}) from GroupMe`);
+  Log.INFO(`Fetching group (id:${id}) from GroupMe`);
   const group = (await fetchAll()).find((channel) => channel.getID() === id);
   if (!group) throw new Error.net.NotFound(id);
 
@@ -67,14 +66,14 @@ export async function fetchById(id: string): Promise<Group> {
 }
 
 async function fetchPage(page: number): Promise<Group[]> {
-  INFO(`Fetching group page #${page} from GroupMe`);
+  Log.INFO(`Fetching group page #${page} from GroupMe`);
   const request: Net.api.IGroupIndexRequest = {
     endpoint: "groups",
     params: { page: `${page}` },
   };
   const response: Net.api.IGroupIndexResponse =
     await Net.api.fetchJSON(request);
-  validateIGroupIndexResponse(response);
+  Net.api.validateIGroupIndexResponse(response);
   return response.response.map((group) => {
     return Group.fromApi(group);
   });

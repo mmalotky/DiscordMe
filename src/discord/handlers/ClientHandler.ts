@@ -1,8 +1,7 @@
 import * as DiscordJs from "discord.js";
 import * as Errors from "~/errors.js";
 import * as Commands from "../commands.js";
-import { Env } from "~/utility.js";
-import { ERR, INFO } from "~/utility/LogMessage.js";
+import { Env, Log } from "~/utility.js";
 
 let client: DiscordJs.Client | undefined;
 let isInit: true | undefined;
@@ -51,23 +50,23 @@ function createClient(): DiscordJs.Client<false> {
 }
 
 async function login() {
-  INFO("Setting login");
+  Log.INFO("Setting login");
   const token = Env.getRequired(Env.REQUIRED.DISCORD_TOKEN);
   await get().login(token);
 }
 
 function onLoginSuccess(client: DiscordJs.Client<true>) {
-  INFO(`Logged in as ${client.user.tag}`);
+  Log.INFO(`Logged in as ${client.user.tag}`);
 }
 
 function onInteraction(interaction: DiscordJs.Interaction) {
   (async () => {
     if (!interaction.isChatInputCommand()) return;
-    INFO(`Received command interaction ${interaction.commandName}`);
+    Log.INFO(`Received command interaction ${interaction.commandName}`);
 
     const execution = Commands.ExecMapping[interaction.commandName];
     if (!execution) {
-      ERR(`No command matching ${interaction.commandName} was found.`);
+      Log.ERR(`No command matching ${interaction.commandName} was found.`);
       return;
     }
 
@@ -93,10 +92,10 @@ function onInteraction(interaction: DiscordJs.Interaction) {
 
 function handleEventError(err: unknown) {
   if (err instanceof Error) {
-    ERR(`${err.stack}`);
+    Log.ERR(`${err.stack}`);
     throw err;
   } else {
-    ERR(err);
+    Log.ERR(err);
     throw new Errors.basic.Uncaught("Uncaught error. Please check logs.");
   }
 }

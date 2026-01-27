@@ -1,6 +1,6 @@
 import fs, { readdirSync, readFileSync, rmSync } from "fs";
 import * as GroupMe from "~/groupMe.js";
-import { WARN, ERR } from "~/utility/LogMessage.js";
+import { Log } from "~/utility.js";
 
 /** Handles persistent data storage */
 const DATA_PATH = "data";
@@ -15,7 +15,7 @@ const DATA_PATH = "data";
  */
 export function addConfig(discordID: string, groupMeChannel: GroupMe.Group) {
   if (checkConfig(discordID)) {
-    WARN(`Channel ${discordID} already has a GroupMe channel assigned`);
+    Log.WARN(`Channel ${discordID} already has a GroupMe channel assigned`);
     return false;
   }
 
@@ -26,7 +26,7 @@ export function addConfig(discordID: string, groupMeChannel: GroupMe.Group) {
   try {
     fs.writeFileSync(path, JSON.stringify(groupMeChannel));
   } catch (err) {
-    ERR(err);
+    Log.ERR(err);
   }
 
   return true;
@@ -40,14 +40,14 @@ export function addConfig(discordID: string, groupMeChannel: GroupMe.Group) {
  */
 export function setConfig(discordID: string, groupMeChannel: GroupMe.Group) {
   if (!checkConfig(discordID)) {
-    WARN(`No config exists for channel ${discordID}`);
+    Log.WARN(`No config exists for channel ${discordID}`);
     return false;
   }
   const path = getFilePath(discordID, groupMeChannel.getID());
   try {
     fs.writeFileSync(path, JSON.stringify(groupMeChannel));
   } catch (err) {
-    ERR(err);
+    Log.ERR(err);
   }
   return true;
 }
@@ -64,7 +64,7 @@ export function rmConfig(discordID: string) {
     rmSync(path);
     return true;
   } catch (err) {
-    WARN(err);
+    Log.WARN(err);
     return false;
   }
 }
@@ -83,7 +83,7 @@ export function getConfig(discordID: string) {
     const channel = GroupMe.Group.fromJson(json);
     return channel;
   } catch (err) {
-    WARN(err);
+    Log.WARN(err);
   }
 }
 
@@ -94,7 +94,7 @@ function checkConfig(discordID: string) {
     const dir = readdirSync(folderPath);
     return dir[0] ? `${folderPath}/${dir[0]}` : undefined;
   } catch (err) {
-    WARN(err);
+    Log.WARN(err);
   }
 }
 

@@ -1,15 +1,11 @@
 import * as DiscordJs from "discord.js";
 import * as ClientHandler from "../handlers/ClientHandler.js";
 import * as DataHandler from "~/handlers/DataHandler.js";
-import {
-  fillInlineAttachments,
-  parseDiscordMessage,
-} from "~/utility/MessageParser.js";
+import { parseDiscordMessage } from "~/utility/MessageParser.js";
 import * as WebHooksHandler from "~/handlers/WebhooksHandler.js";
 import * as GroupMe from "~/groupMe.js";
-import { ERR, INFO } from "~/utility/LogMessage.js";
 import { getFile } from "~/handlers/GroupMeFileController.js";
-import { Env } from "~/utility.js";
+import { Env, Log } from "~/utility.js";
 import * as Errors from "~/errors.js";
 
 export const NAME: string = "gm";
@@ -59,7 +55,7 @@ export function build(): DiscordJs.SlashCommandSubcommandsOnlyBuilder {
 export async function execute(
   interaction: DiscordJs.ChatInputCommandInteraction,
 ) {
-  INFO("Executing GM command");
+  Log.INFO("Executing GM command");
   const subcommand = interaction.options.getSubcommand();
   switch (subcommand) {
     case "config":
@@ -89,7 +85,7 @@ export async function execute(
 export async function updateNow() {
   ClientHandler.assertInit();
 
-  INFO("Updating messages");
+  Log.INFO("Updating messages");
 
   const groupMeGroupId = Env.getRequired(Env.OPTIONAL.TEST_GROUPME_GROUP_ID);
   GroupMe.init();
@@ -117,7 +113,7 @@ export async function updateNow() {
  * @param interaction -
  * */
 async function update(interaction: DiscordJs.ChatInputCommandInteraction) {
-  INFO("Running GM update command");
+  Log.INFO("Running GM update command");
   const groupMeChannel = DataHandler.getConfig(interaction.channelId);
   const discordChannel = interaction.channel;
   if (!groupMeChannel || !discordChannel) return;
@@ -129,7 +125,7 @@ async function sendMessages(
   discordChannel: DiscordJs.TextBasedChannel,
   interaction?: DiscordJs.ChatInputCommandInteraction,
 ) {
-  INFO(`Sending messages from GroupMe to Discord`);
+  Log.INFO(`Sending messages from GroupMe to Discord`);
   const messages = await GroupMe.MessageHandler.getMessages(groupMeChannel);
 
   if (interaction) {
@@ -148,69 +144,12 @@ async function sendMessages(
   }
 
   for (const message of messages) {
-    fillInlineAttachments(message);
-
-    const messageList = splitMessage(message.getText()).map(
-      (m) =>
-        new GroupMe.Message(
-          message.getID(),
-          message.getMember(),
-          message.getGroupID(),
-          message.getCreatedOn(),
-          m,
-          [],
-          message.getIsSystem(),
-        ),
-    );
-
-    if (messageList.length === 0) {
-      await sendGroupMeMessageToDiscordChannel(message, discordChannel);
-    } else {
-      messageList[messageList.length - 1].setAttachments(
-        message.getAttachments(),
-      );
-      for (const m of messageList)
-        await sendGroupMeMessageToDiscordChannel(m, discordChannel);
-    }
+    await sendGroupMeMessageToDiscordChannel(message, discordChannel);
 
     groupMeChannel.setLastMessageID(message.getID());
     if (interaction)
       DataHandler.setConfig(interaction.channelId, groupMeChannel);
   }
-}
-
-function splitMessage(message: string) {
-  const messageList: string[] = [];
-  if (message.length <= 1500) {
-    messageList.push(message);
-    return messageList;
-  }
-
-  let i = 0;
-  do {
-    /*
-        Check for appropriate breaking points such as whitespace and characters outside of
-        codes delimited with colons.
-        */
-    const areaCheck = message.substring(i, i + 1500);
-    if (areaCheck.length === 0) {
-      i += 1;
-      continue;
-    }
-
-    const re = /(\s+[^:\s]*$)|\s*(:[^:\s]+:[^:\s]*$)|\s*:[^\s:]*$/;
-    const substring = areaCheck.replace(re, "");
-
-    if (substring.length === 0) {
-      messageList.push(areaCheck);
-      i += areaCheck.length;
-    } else {
-      messageList.push(substring);
-      i += substring.length;
-    }
-  } while (i < message.length);
-
-  return messageList;
 }
 
 async function sendGroupMeMessageToDiscordChannel(
@@ -233,7 +172,7 @@ async function getWebHook(
   discordChannel: DiscordJs.TextBasedChannel,
   message: GroupMe.Message,
 ): Promise<DiscordJs.Webhook> {
-  INFO(`Fetching a webhook for (gm-user:${message.getMember().getID()})`);
+  Log.INFO(`Fetching a webhook for (gm-user:${message.getMember().getID()})`);
   const webHook = await WebHooksHandler.getWebhookByChannel(discordChannel);
 
   try {
@@ -250,7 +189,7 @@ async function getWebHook(
     else if (webHook.name === message.getMember().getName()) return webHook;
     else return await WebHooksHandler.editWebhook(webHook, message, avatar);
   } catch (err) {
-    if (!(err instanceof Errors.GroupMeMessageParseError)) ERR(err);
+    if (!(err instanceof Errors.GroupMeMessageParseError)) Log.ERR(err);
 
     if (!webHook)
       return await WebHooksHandler.createWebHook(discordChannel, message, null);
@@ -268,7 +207,7 @@ async function getWebHook(
  * @param interaction -
  * */
 async function config(interaction: DiscordJs.ChatInputCommandInteraction) {
-  INFO("Running GM config command");
+  Log.INFO("Running GM config command");
   const channel = await getChannel(interaction);
 
   const success = DataHandler.addConfig(interaction.channelId, channel);
@@ -293,7 +232,7 @@ async function config(interaction: DiscordJs.ChatInputCommandInteraction) {
  * @param interaction -
  */
 async function setConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
-  INFO("Running GM setconfig command");
+  Log.INFO("Running GM setconfig command");
   const channel = await getChannel(interaction);
 
   const rm = DataHandler.rmConfig(interaction.channelId);
@@ -318,7 +257,7 @@ async function setConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
  * @param interaction -
  */
 async function getConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
-  INFO("Running GM getconfig command");
+  Log.INFO("Running GM getconfig command");
   const group = DataHandler.getConfig(interaction.channelId);
 
   if (group) {
@@ -346,14 +285,14 @@ async function getConfig(interaction: DiscordJs.ChatInputCommandInteraction) {
 async function getChannel(
   interaction: DiscordJs.ChatInputCommandInteraction,
 ): Promise<GroupMe.Group> {
-  INFO("Fetching channel from interaction");
+  Log.INFO("Fetching channel from interaction");
 
   const name = interaction.options.getString("channel", true);
   try {
     GroupMe.init();
     return await GroupMe.GroupHandler.fetchByName(name);
   } catch (err) {
-    ERR(err);
+    Log.ERR(err);
     Errors.assertValid(err);
     switch (err.constructor) {
       case Errors.basic.TooMany:
